@@ -1,4 +1,4 @@
-from queue import Queue
+from Queue import Queue
 import threading
 import time
 
@@ -17,17 +17,20 @@ class ExampleWorkerThread(threading.Thread):
         queue_manger.publish('info', {'msg': 'instance_type',
                                       'class': instance_class})
 
+    def log(self, entry):
+        print('[%sWorker-%s] %s\n' % (self.subject, self.getName(), entry))
+
     def listener(self, message):
         # this could be a separate method and queue (outside of the thread)
-        print('Working thread %s received message: ' % (self.subject, message))
         self.queue.put(message)
 
     def do_work(self, msg):
-        print('Working on %s for %s' % (msg, self.subject))
-        time.wait(5)
+        self.log('Creating %s instance (id=%s)' % (self.subject,
+                                                   msg['id']))
+        time.sleep(5)
+        msg['status'] = 'running'
         self.queue_manger.publish('info',
-                                  {'msg': 'instace_info', 'instance': 'aa'})
-
+                                  {'msg': 'instace_info', 'instance': msg})
 
     def run(self):
         while True:

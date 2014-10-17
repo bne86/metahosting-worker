@@ -5,7 +5,8 @@ class QueueManager(object):
     queues = dict()
 
     def publish(self, routing_key, message):
-        if not self.queue_exist():
+        print('[QueueManager] dispatching %s: %s' % (routing_key, message))
+        if not self.queue_exist(routing_key):
             print('Error no queue for given routing key %s!' % routing_key)
             return
         listener = self.queues[routing_key].popleft()
@@ -19,7 +20,7 @@ class QueueManager(object):
         self.queues[routing_key].append(listener)
 
     def unsubscribe(self, routing_key, listener):
-        if not self.queue_exist():
+        if not self.queue_exist(routing_key):
             print('Error no queue for given routing key %s!' % routing_key)
             return
         q = self.queues.pop(routing_key)

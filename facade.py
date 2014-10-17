@@ -7,13 +7,13 @@ instances = dict()
 
 
 # worker method
-def register_instance_type(instanceType):
+def register_instance_type(instance_type):
     global instanceTypes
-    if is_proper_instance(instanceType):
-        name = instanceType['name']
-        instanceType['ts'] = time.time()
-        print 'Registering class: ', name
-        instanceTypes[name] = instanceType
+    if is_proper_instance(instance_type):
+        name = instance_type['name']
+        instance_type['ts'] = time.time()
+        print('Registering class: %s' % name)
+        instanceTypes[name] = instance_type
 
 
 # client method
@@ -23,20 +23,20 @@ def get_instance_types():
 
 
 # client method
-def create_instance(instanceType):
+def create_instance(instance_type):
     global instanceTypes
     global instances
-    if instanceType['name'] in instanceTypes:
-        print 'Creating instance for ', instanceType['name']
+    if instance_type['name'] in instanceTypes:
+        print('Creating instance for %s' % instance_type['name'])
         instance = dict()
-        instance['id'] = generate_id(instanceType)
+        instance['id'] = generate_id()
         instance['status'] = 'starting'
-        instance['class'] = instanceType
+        instance['class'] = instance_type
         instances[instance['id']] = instance
         # send create message?
         return instance
     else:
-        print 'Unknown instance type: ', instanceType['name']
+        print('Unknown instance type: ' % instance_type['name'])
 
 
 # client method
@@ -45,20 +45,23 @@ def get_instance(instance_id):
     if instance_id in instances:
         return instances[instance_id]
     else:
-        print 'Instance ', instance_id, ' does not exist'
+        print('Instance %s does not exist' % instance_id)
 
 
 # client and worker method
 def update_instance(instance_id, instance):
     global instances
-    print 'Instance ', instance_id, ' updated'
+    print('Instance %s updated' % instance_id)
     instances[instance_id] = instance
 
 
 # helpers
-def is_proper_instance(instanceType):
-    return 'name' in instanceType
+def is_proper_instance(instance_type):
+    return 'name' in instance_type
 
 
-def generate_id(instanceType):
+def generate_id():
     return uuid.uuid1().hex
+
+
+

@@ -1,12 +1,17 @@
 from queue_manager import qm
-from worker import ExampleWorkerThread
-from facade_listener import facade_listener
+
+from facade import facade_listener
+
+# this file might become redundant: facade listener could register itself
+# in facade file
+
+# also worker(s) will register themselves
 
 qm.subscribe('info', facade_listener)
 
-th1 = ExampleWorkerThread(qm)
-th1.daemon = True
-th1.start()
+
+from worker import init
+init()
 
 # qm.publish('service_a', 'Create new1')
 # qm.publish('service_a', 'Create new2')

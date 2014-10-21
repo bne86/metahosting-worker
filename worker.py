@@ -8,10 +8,18 @@ instance_class['name'] = 'service_a'
 instance_class['description'] = 'service_a for doing lot of cool stuff'
 
 # how often instance type information should be published (will become global)
-INTERVAL = 3600
+INTERVAL = 10
 publishing_thread = threading.Timer(0, {})
 
 
+def run_in_background(func):
+    def background_runner(*args, **kwargs):
+        th = threading.Thread(target=func, args=args, kwargs=kwargs)
+        th.start()
+    return background_runner
+
+
+@run_in_background
 def create_instance(msg):
     log('Creating %s instance (id=%s)' % (instance_class['name'], msg['id']))
     time.sleep(5)
@@ -50,4 +58,3 @@ def jitter(interval):
 
 def log(entry):
     print('[%sWorker] %s\n' % (instance_class['name'], entry))
-

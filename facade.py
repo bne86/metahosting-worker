@@ -6,6 +6,9 @@ instanceTypes = dict()
 instances = dict()
 
 
+def init(qm):
+    qm.subscribe('info', facade_listener)
+
 # worker method
 def register_instance_type(instance_type):
     global instanceTypes

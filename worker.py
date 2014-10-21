@@ -1,7 +1,7 @@
 import time
 import threading
 import random
-from queue_manager import qm, send_message, get_message_subject
+from queue_manager import send_message, get_message_subject
 
 instance_class = dict()
 instance_class['name'] = 'service_a'
@@ -51,7 +51,6 @@ def listener(message):
 
 
 def publish_class_type():
-    # qm.publish('info', {'msg': 'instance_type', 'class': instance_class})
     send_message('info', 'instance_type', {'class': instance_class})
     global publishing_thread
     publishing_thread = threading.Timer(INTERVAL + jitter(INTERVAL),
@@ -68,7 +67,7 @@ def stop():
     publishing_thread.cancel()
 
 
-def init():
+def init(qm):
     # this should be repeated periodically as well, our msg "middleware"
     # can't cope with that at the moment
     qm.subscribe(instance_class['name'], listener)

@@ -1,6 +1,6 @@
 import time
 import uuid
-from queue_manager import qm
+from queue_manager import send_message, get_message_subject
 
 instanceTypes = dict()
 instances = dict()
@@ -33,8 +33,8 @@ def create_instance(instance_type_name):
         instance['status'] = 'starting'
         instance['class'] = instanceTypes[instance_type_name]
         instances[instance['id']] = instance
-        # send create message?
-        qm.publish(instance_type_name, instance.copy())
+
+        send_message(instance_type_name, 'create_instance', instance)
         return instance
     else:
         log('Unknown instance type: ' % instance_type_name)
@@ -72,17 +72,19 @@ def update_instance(instance_id, instance):
 
 # msg receiver
 def facade_listener(message):
-    if 'msg' not in message:
+    msg_subject = get_message_subject(message)
+    if msg_subject is None:
         print('Invalid message format')
         return
 
-    msg_subject = message['msg']
     if msg_subject == 'instance_type':
         register_instance_type(message['class'])
-    if msg_subject == 'instance_info':
+    elif msg_subject == 'instance_info':
         instance = message['instance'].copy()
         instance['last_info'] = time.time()
         update_instance(instance['id'], instance)
+    else:
+        log('Unknown message subject: %s' % msg_subject)
 
 
 # helpers

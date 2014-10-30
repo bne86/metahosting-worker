@@ -1,24 +1,13 @@
 import time
-import threading
-import random
 from queue_manager import send_message, get_message_subject
+from worker_helpers import run_in_background, start_publishing_class_type, \
+    stop_publishing_class_type
 
 instance_class = dict()
 instance_class['name'] = 'service_a'
 instance_class['description'] = 'service_a for doing lot of cool stuff'
 
 my_instances = dict()
-
-# how often instance type information should be published (will become global)
-INTERVAL = 3600
-publishing_thread = threading.Timer(0, lambda: None)
-
-
-def run_in_background(func):
-    def background_runner(*args, **kwargs):
-        th = threading.Thread(target=func, args=args, kwargs=kwargs)
-        th.start()
-    return background_runner
 
 
 @run_in_background
@@ -30,6 +19,7 @@ def create_instance(message):
     instance['status'] = 'running'
     my_instances[instance['id']] = instance
     publish_instance_status(instance)
+
 
 @run_in_background
 def delete_instance(message):
@@ -50,32 +40,19 @@ def listener(message):
         log('Unknown message subject: %s' % subject)
 
 
-def publish_class_type():
-    send_message('info', 'instance_type', {'class': instance_class})
-    global publishing_thread
-    publishing_thread = threading.Timer(INTERVAL + jitter(INTERVAL),
-                                        publish_class_type)
-    publishing_thread.start()
-
-
 def publish_instance_status(instance):
     send_message('info', 'instance_info', {'instance': instance})
-
-
-def stop():
-    global publishing_thread
-    publishing_thread.cancel()
 
 
 def init(qm):
     # this should be repeated periodically as well, our msg "middleware"
     # can't cope with that at the moment
     qm.subscribe(instance_class['name'], listener)
-    publish_class_type()
+    start_publishing_class_type(instance_class, send_message)
 
 
-def jitter(interval):
-    return random.random() * interval * 0.3
+def stop():
+    stop_publishing_class_type(instance_class)
 
 
 def log(entry):

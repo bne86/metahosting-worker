@@ -1,12 +1,13 @@
 from queue_manager import qm
-
+import time
 from facade import init as facade_init, get_all_instances, get_instance_types, \
     create_instance
 
+print('Initializing facade')
 facade_init(qm)
 
 from worker import init as worker_init, stop
-
+print('Initializing worker')
 worker_init(qm)
 
 
@@ -25,10 +26,14 @@ if __name__ == "__main__":
     i = create_instance('service_a')
     print('Instance:\n%s' % i)
 
-    print('All instances:\n')
+    print('All instances:')
     instances = get_all_instances()
     for k, v in instances.iteritems():
         print('%s -- %s' % (k, v))
-
+    time.sleep(5)
+    print('All instances:')
+    instances = get_all_instances()
+    for k, v in instances.iteritems():
+        print('%s -- %s' % (k, v))
     stop()
     print('End')

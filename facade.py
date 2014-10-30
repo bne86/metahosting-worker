@@ -9,6 +9,7 @@ instances = dict()
 def init(qm):
     qm.subscribe('info', facade_listener)
 
+
 # worker method
 def register_instance_type(instance_type):
     global instanceTypes
@@ -100,4 +101,4 @@ def generate_id():
 
 
 def log(msg):
-    print('[facade] %s\n' % msg)
+    print('[facade] %s' % msg)

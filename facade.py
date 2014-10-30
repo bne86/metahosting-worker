@@ -1,12 +1,15 @@
 import time
 import uuid
-from queue_manager import send_message, get_message_subject
+from queue_manager import get_message_subject
 
 instanceTypes = dict()
 instances = dict()
+send_message = lambda: None
 
 
-def init(qm):
+def init(qm, send_message_method):
+    global send_message
+    send_message = send_message_method
     qm.subscribe('info', facade_listener)
 
 
@@ -37,7 +40,7 @@ def create_instance(instance_type_name):
         instance['status'] = 'starting'
         instance['class'] = instanceTypes[instance_type_name]
         instances[instance['id']] = instance
-
+        global send_message
         send_message(instance_type_name, 'create_instance', instance)
         return instance
     else:

@@ -11,8 +11,12 @@ def run_in_background(func):
 # stores True for each class type that should be published (we could store
 # threads as well
 publishing_active = dict()
-# how often instance type information should be published (will become global)
-INTERVAL = 3600
+# how often instance type information should be published
+INTERVAL = 0
+
+# options:
+# 1) publishing thread
+# 2) many threads stored in dict (to stop selectively)
 
 
 def publish_class_type(send_message, class_type_description):
@@ -30,7 +34,7 @@ def stop_publishing_class_type(class_type_description):
 
 def start_publishing_class_type(class_type_description, send_message_function):
     global publishing_active
-    publishing_active[class_type_description['name']] = True
+    publishing_active[class_type_description['name']] = (INTERVAL > 0)
     publish_class_type(send_message_function, class_type_description)
 
 

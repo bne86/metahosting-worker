@@ -30,10 +30,11 @@ if __name__ == "__main__":
     instances = get_all_instances()
     for k, v in instances.iteritems():
         print('%s -- %s' % (k, v))
+
+    print('..>Waiting<..')
     time.sleep(5)
     print('All instances:')
     instances = get_all_instances()
     for k, v in instances.iteritems():
         print('%s -- %s' % (k, v))
     stop()
-    print('End')

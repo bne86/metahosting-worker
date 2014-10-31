@@ -17,7 +17,6 @@ INTERVAL = 3600
 
 def publish_class_type(send_message, class_type_description):
     send_message('info', 'instance_type', {'class': class_type_description})
-    global publishing_active
     if publishing_active[class_type_description['name']]:
         func = lambda: publish_class_type(send_message, class_type_description)
         th = threading.Timer(INTERVAL + jitter(INTERVAL), func)

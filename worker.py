@@ -34,7 +34,6 @@ def listener(message):
 
 @run_in_background
 def create_instance(message):
-    global my_instances
     instance = message.copy()
     log('Creating instance (id=%s)' % instance['id'])
     time.sleep(5)
@@ -52,7 +51,6 @@ def delete_instance(message):
 
 
 def publish_instance_status(instance):
-    global send_message
     send_message('info', 'instance_info', {'instance': instance})
 
 

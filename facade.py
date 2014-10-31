@@ -15,7 +15,6 @@ def init(qm, send_message_method):
 
 # worker method
 def register_instance_type(instance_type):
-    global instanceTypes
     if is_proper_instance_type(instance_type):
         name = instance_type['name']
         instance_type['ts'] = time.time()
@@ -25,14 +24,11 @@ def register_instance_type(instance_type):
 
 # client method
 def get_instance_types():
-    global instanceTypes
     return instanceTypes.copy()
 
 
 # client method
 def create_instance(instance_type_name):
-    global instanceTypes
-    global instances
     if instance_type_name in instanceTypes:
         log('Creating instance for %s' % instance_type_name)
         instance = dict()
@@ -40,7 +36,6 @@ def create_instance(instance_type_name):
         instance['status'] = 'starting'
         instance['class'] = instanceTypes[instance_type_name]
         instances[instance['id']] = instance
-        global send_message
         send_message(instance_type_name, 'create_instance', instance)
         return instance
     else:
@@ -63,7 +58,6 @@ def get_instances_of_type(instance_type_name):
 
 # client method
 def get_instance(instance_id):
-    global instances
     if instance_id in instances:
         return instances[instance_id]
     else:
@@ -72,7 +66,6 @@ def get_instance(instance_id):
 
 # client and worker method
 def update_instance(instance_id, instance):
-    global instances
     log('Instance %s updated' % instance_id)
     instances[instance_id] = instance
 

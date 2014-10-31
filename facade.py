@@ -7,10 +7,10 @@ instances = dict()
 send_message = lambda x, y, z: None
 
 
-def init(qm, send_message_method):
+def init(subscribe_method, send_message_method):
     global send_message
     send_message = send_message_method
-    qm.subscribe('info', facade_listener)
+    subscribe_method('info', facade_listener)
 
 
 # worker method

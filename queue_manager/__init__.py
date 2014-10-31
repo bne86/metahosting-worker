@@ -9,6 +9,10 @@ def send_message(routing_key, subject, message):
     qm.publish(routing_key, msg)
 
 
+def subscribe(routing_key, callback):
+    qm.subscribe(routing_key,callback)
+
+
 def get_message_subject(message):
     if 'subject' not in message:
         return None

@@ -10,11 +10,12 @@ instance_class['description'] = 'service_a for doing lot of cool stuff'
 my_instances = dict()
 send_message = lambda x, y, z: None
 
-def init(qm, send_message_method):
+
+def init(subscribe_method, send_message_method):
     # this should be repeated periodically as well, our msg "middleware"
     # can't cope with that at the moment, or we can use the publish method
     # for that.
-    qm.subscribe(instance_class['name'], dispatcher)
+    subscribe_method(instance_class['name'], dispatcher)
     global send_message
     send_message = send_message_method
     start_publishing_class_type(instance_class, send_message)

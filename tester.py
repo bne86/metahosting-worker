@@ -1,14 +1,14 @@
-from queue_manager import qm, send_message
+from queue_manager import subscribe, send_message
 import time
 from facade import init as facade_init, get_all_instances, get_instance_types,\
     create_instance
 
 print('Initializing facade')
-facade_init(qm, send_message_method=send_message)
+facade_init(subscribe_method=subscribe, send_message_method=send_message)
 
 from worker import init as worker_init, stop
 print('Initializing worker')
-worker_init(qm, send_message_method=send_message)
+worker_init(subscribe_method=subscribe, send_message_method=send_message)
 
 
 if __name__ == "__main__":

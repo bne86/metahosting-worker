@@ -1,23 +1,24 @@
 import time
+from config import subscribe, send_message
 from queue_manager import get_message_subject
 from worker_helpers import run_in_background, start_publishing_class_type, \
     stop_publishing_class_type
 
+
+# template for service creation
 instance_class = dict()
 instance_class['name'] = 'service_a'
 instance_class['description'] = 'service_a for doing lot of cool stuff'
 
 my_instances = dict()
-send_message = lambda x, y, z: None
 
 
-def init(subscribe_method, send_message_method):
+def init():
     # this should be repeated periodically as well, our msg "middleware"
     # can't cope with that at the moment, or we can use the publish method
     # for that.
-    subscribe_method(instance_class['name'], dispatcher)
-    global send_message
-    send_message = send_message_method
+    log('Init')
+    subscribe(instance_class['name'], dispatcher)
     start_publishing_class_type(instance_class, send_message)
 
 
@@ -52,6 +53,7 @@ def delete_instance(message):
         return
     instance['status'] = 'deleted'
     update_instance_status(instance_id, instance)
+
 
 # it smells
 def stop():

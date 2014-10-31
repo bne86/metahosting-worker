@@ -1,15 +1,11 @@
-from queue_manager import subscribe, send_message
 import time
-from facade import init as facade_init, get_all_instances, get_instance_types,\
-    create_instance
+from facade import get_all_instances, get_instance_types, create_instance
 
-print('Initializing facade')
-facade_init(subscribe_method=subscribe, send_message_method=send_message)
+from store_updater import init as updater_init
+updater_init()
 
-from worker import init as worker_init, stop
-print('Initializing worker')
-worker_init(subscribe_method=subscribe, send_message_method=send_message)
-
+from worker import stop, init as worker_init
+worker_init()
 
 if __name__ == "__main__":
     print('Starting testing...')

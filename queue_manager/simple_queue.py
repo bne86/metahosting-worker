@@ -2,7 +2,9 @@ from collections import deque
 
 
 class QueueManager(object):
-    queues = dict()
+
+    def __init__(self):
+        self.queues = dict()
 
     def publish(self, routing_key, message):
         print('[QueueManager] dispatching %s: %s' % (routing_key, message))

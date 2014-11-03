@@ -4,8 +4,8 @@ import threading
 
 def run_in_background(func):
     def background_runner(*args, **kwargs):
-        th = threading.Thread(target=func, args=args, kwargs=kwargs)
-        th.start()
+        thread = threading.Thread(target=func, args=args, kwargs=kwargs)
+        thread.start()
     return background_runner
 
 # stores True for each class type that should be published (we could store
@@ -29,7 +29,7 @@ def publish_class_type(send_message, class_type_description):
 
 def stop_publishing_class_type(class_type_description):
     global publishing_active
-    publishing_active[class_type_description['name']] = True
+    publishing_active[class_type_description['name']] = False
 
 
 def start_publishing_class_type(class_type_description, send_message_function):

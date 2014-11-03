@@ -8,4 +8,3 @@ from queue_manager import send_message as send_method
 
 subscribe = sub_method
 send_message = send_method
-

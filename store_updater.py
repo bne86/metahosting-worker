@@ -46,6 +46,4 @@ def is_proper_instance_type(instance_type):
 
 
 def log(msg):
-    print('[store-updater] %s' % msg)
-
-
+    print('[%s] %s' % (__name__, msg))

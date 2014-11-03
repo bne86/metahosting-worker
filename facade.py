@@ -37,11 +37,10 @@ def generate_id():
 
 
 def log(msg):
-    print('[facade] %s' % msg)
+    print('[%s] %s' % (__name__, msg))
 
 
 def get_instances_of_type(instance_type_name):
     def filter_function(x):
         return x[1]['class']['name'] == instance_type_name
     return filter(filter_function, get_all_instances().iteritems())
-

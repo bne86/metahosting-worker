@@ -61,10 +61,9 @@ def stop():
 
 
 def get_instance(instance_id):
-    global my_instances
     if instance_id not in my_instances:
         return None
-    return my_instances[instance_id]
+    return my_instances[instance_id].copy()
 
 
 def update_instance_status(instance_id, instance):
@@ -81,5 +80,5 @@ def publish_instance_status(instance_id):
         send_message('info', 'instance_info', {'instance': instance})
 
 
-def log(entry):
-    print('[%sWorker] %s\n' % (instance_class['name'], entry))
+def log(msg):
+    print('[%s] %s' % (__name__, msg))

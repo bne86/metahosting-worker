@@ -1,3 +1,4 @@
+import logging
 import time
 from config import subscribe, send_message
 from queue_manager import get_message_subject
@@ -17,7 +18,7 @@ def init():
     # this should be repeated periodically as well, our msg "middleware"
     # can't cope with that at the moment, or we can use the publish method
     # for that.
-    log('Init')
+    logging.debug('Init')
     subscribe(instance_class['name'], dispatcher)
     start_publishing_class_type(instance_class, send_message)
 
@@ -32,13 +33,13 @@ def dispatcher(message):
     elif subject == 'instance_status':
         publish_instance_status(message['id'])
     else:
-        log('Unknown message subject: %s' % subject)
+        logging.error('Unknown message subject: %s' % subject)
 
 
 @run_in_background
 def create_instance(message):
     instance = message.copy()
-    log('Creating instance (id=%s)' % instance['id'])
+    logging.debug('Creating instance (id=%s)' % instance['id'])
     time.sleep(5)
     instance['status'] = 'running'
     update_instance_status(instance['id'], instance)
@@ -47,7 +48,7 @@ def create_instance(message):
 @run_in_background
 def delete_instance(message):
     instance_id = message['id']
-    log('Deleting instance (id=%s)' % instance_id)
+    logging.debug('Deleting instance (id=%s)' % instance_id)
     instance = get_instance(instance_id)
     if instance is None:
         return
@@ -78,7 +79,3 @@ def publish_instance_status(instance_id):
     instance = get_instance(instance_id)
     if instance is not None:
         send_message('info', 'instance_info', {'instance': instance})
-
-
-def log(msg):
-    print('[%s] %s' % (__name__, msg))

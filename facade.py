@@ -1,3 +1,4 @@
+import logging
 import uuid
 from config import instance_type_store
 from config import send_message
@@ -11,9 +12,9 @@ def get_instance_types():
 def create_instance(instance_type_name):
     instance_types = get_instance_types()
     if instance_type_name not in instance_types:
-        log('Unknown instance type: ' % instance_type_name)
+        logging.debug('Unknown instance type: ' % instance_type_name)
 
-    log('Creating instance for %s' % instance_type_name)
+    logging.debug('Creating instance for %s' % instance_type_name)
     instance = dict()
     instance['id'] = generate_id()
     instance['status'] = 'starting'
@@ -34,10 +35,6 @@ def get_instance(instance_id):
 
 def generate_id():
     return uuid.uuid1().hex
-
-
-def log(msg):
-    print('[%s] %s' % (__name__, msg))
 
 
 def get_instances_of_type(instance_type_name):

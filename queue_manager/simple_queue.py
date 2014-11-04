@@ -1,4 +1,5 @@
 from collections import deque
+import logging
 
 
 class QueueManager(object):
@@ -7,9 +8,9 @@ class QueueManager(object):
         self.queues = dict()
 
     def publish(self, routing_key, message):
-        print('[QueueManager] dispatching %s: %s' % (routing_key, message))
+        logging.debug('[QueueManager] dispatching %s: %s' % (routing_key, message))
         if not self.queue_exist(routing_key):
-            print('Error no queue for given routing key %s!' % routing_key)
+            logging.error('Error no queue for given routing key %s!' % routing_key)
             return
         listener = self.queues[routing_key].popleft()
         listener(message)
@@ -23,7 +24,7 @@ class QueueManager(object):
 
     def unsubscribe(self, routing_key, listener):
         if not self.queue_exist(routing_key):
-            print('Error no queue for given routing key %s!' % routing_key)
+            logging.error('Error no queue for given routing key %s!' % routing_key)
             return
         q = self.queues.pop(routing_key)
         q.remove(listener)

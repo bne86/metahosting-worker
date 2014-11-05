@@ -2,7 +2,7 @@ import ConfigParser
 import logging
 import time
 from stores import instance_store, instance_type_store
-from queue_manager import get_message_subject, subscribe
+from queue_managers import get_message_subject, subscribe
 
 settings = ConfigParser.ConfigParser()
 settings.readfp(open('config.ini'))
@@ -14,7 +14,7 @@ def init():
 
 
 def update_instance(instance):
-    logging.debug('Updating instance %s ' % instance['id'])
+    logging.debug('Updating instance %s ', instance['id'])
     instance['last_info'] = time.time()
     instance_store.update(instance['id'], instance)
 
@@ -30,19 +30,18 @@ def dispatcher(message):
     elif msg_subject == 'instance_info':
         update_instance(instance=message['instance'].copy())
     else:
-        logging.error('Unknown message subject: %s' % msg_subject)
+        logging.error('Unknown message subject: %s', msg_subject)
 
 
 def register_instance_type(instance_type):
     if not is_proper_instance_type(instance_type):
-        logging.error('Error: invalid instance type = %s' % instance_type)
+        logging.error('Error: invalid instance type = %s', instance_type)
 
     name = instance_type['name']
     instance_type['ts'] = time.time()
-    logging.debug('Registering class: %s' % name)
+    logging.debug('Registering class: %s', name)
     instance_type_store.update(name, instance_type)
 
 
 def is_proper_instance_type(instance_type):
     return 'name' in instance_type
-

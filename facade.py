@@ -1,7 +1,7 @@
 import logging
 import uuid
 from stores import instance_store, instance_type_store
-from queue_manager import send_message
+from queue_managers import send_message
 
 
 def get_instance_types():
@@ -11,9 +11,9 @@ def get_instance_types():
 def create_instance(instance_type_name):
     instance_types = get_instance_types()
     if instance_type_name not in instance_types:
-        logging.debug('Unknown instance type: ' % instance_type_name)
+        logging.debug('Unknown instance type: ', instance_type_name)
 
-    logging.debug('Creating instance for %s' % instance_type_name)
+    logging.debug('Creating instance for %s', instance_type_name)
     instance = dict()
     instance['id'] = generate_id()
     instance['status'] = 'starting'

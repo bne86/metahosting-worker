@@ -1,7 +1,9 @@
 import logging
 import time
 
-logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
+logging.basicConfig(format='%(asctime)s %(message)s',
+                    datefmt='%m/%d/%Y %I:%M:%S %p',
+                    level=logging.DEBUG)
 
 from facade import get_all_instances, get_instance_types, create_instance
 
@@ -15,27 +17,27 @@ worker_init()
 if __name__ == "__main__":
     logging.debug('Starting testing...')
     types = get_instance_types()
-    logging.debug('Instance types:\n')
+    logging.debug('Instance types:')
     for r_type in types:
-        logging.debug('\t%s\n' % r_type)
+        logging.debug('%s', r_type)
 
-    logging.debug('\nSubmitting creation request\n')
+    logging.debug('Submitting creation request')
     i = create_instance('service_a')
-    logging.debug('Instance:\n%s' % i)
+    logging.debug('Instance: %s', i)
 
-    logging.debug('\nSubmitting creation request\n')
+    logging.debug('Submitting creation request')
     i = create_instance('service_a')
-    logging.debug('Instance:\n%s' % i)
+    logging.debug('Instance: %s' , i)
 
     logging.debug('All instances:')
     instances = get_all_instances()
     for k, v in instances.iteritems():
-        logging.debug('%s -- %s' % (k, v))
+        logging.debug('%s -- %s', k, v)
 
     logging.debug('..>Waiting<..')
     time.sleep(5)
     logging.debug('All instances:')
     instances = get_all_instances()
     for k, v in instances.iteritems():
-        logging.debug('%s -- %s' % (k, v))
+        logging.debug('%s -- %s', k, v)
     stop()

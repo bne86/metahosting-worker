@@ -8,9 +8,11 @@ class QueueManager(object):
         self.queues = dict()
 
     def publish(self, routing_key, message):
-        logging.debug('[QueueManager] dispatching %s: %s' % (routing_key, message))
+        logging.debug('[QueueManager] dispatching %s: %s', routing_key,
+                      message)
         if not self.queue_exist(routing_key):
-            logging.error('Error no queue for given routing key %s!' % routing_key)
+            logging.error('Error no queue for given routing key "%s"',
+                          routing_key)
             return
         listener = self.queues[routing_key].popleft()
         listener(message)
@@ -24,12 +26,13 @@ class QueueManager(object):
 
     def unsubscribe(self, routing_key, listener):
         if not self.queue_exist(routing_key):
-            logging.error('Error no queue for given routing key %s!' % routing_key)
+            logging.error('Error no queue for given routing key "%s"',
+                          routing_key)
             return
-        q = self.queues.pop(routing_key)
-        q.remove(listener)
-        if len(q) > 0:
-            self.queues[routing_key] = q
+        queue = self.queues.pop(routing_key)
+        queue.remove(listener)
+        if len(queue) > 0:
+            self.queues[routing_key] = queue
 
     def queue_exist(self, routing_key):
         if routing_key not in self.queues:

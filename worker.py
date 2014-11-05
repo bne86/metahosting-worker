@@ -1,7 +1,6 @@
 import logging
 import time
-from config import subscribe, send_message
-from queue_manager import get_message_subject
+from queue_manager import get_message_subject, send_message, subscribe
 from worker_helpers import run_in_background, start_publishing_class_type, \
     stop_publishing_class_type
 

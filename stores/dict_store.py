@@ -1,4 +1,4 @@
-class DictStore(object):
+class Store(object):
 
     def __init__(self):
         self.store = dict()

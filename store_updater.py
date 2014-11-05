@@ -1,10 +1,11 @@
+import ConfigParser
 import logging
 import time
-from queue_manager import get_message_subject
+from stores import instance_store, instance_type_store
+from queue_manager import get_message_subject, subscribe
 
-from config import subscribe
-from config import instance_store
-from config import instance_type_store
+settings = ConfigParser.ConfigParser()
+settings.readfp(open('config.ini'))
 
 
 def init():

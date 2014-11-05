@@ -1,6 +1,13 @@
-from queue_manager.simple_queue import QueueManager
+import ConfigParser
+import importlib
 
-qm = QueueManager()
+#TODO: decide whether this is a appropriate way to dynamically switch between different queue backends
+#TODO:  still have to inject the config file path or using command line
+settings = ConfigParser.ConfigParser()
+settings.readfp(open('config.ini'))
+
+qmmodule = importlib.import_module(settings.get('communication', 'backend'))
+qm = qmmodule.QueueManager()
 
 
 def send_message(routing_key, subject, message):
@@ -10,7 +17,7 @@ def send_message(routing_key, subject, message):
 
 
 def subscribe(routing_key, callback):
-    qm.subscribe(routing_key,callback)
+    qm.subscribe(routing_key, callback)
 
 
 def get_message_subject(message):

@@ -1,8 +1,7 @@
 import logging
 import uuid
-from config import instance_type_store
-from config import send_message
-from config import instance_store
+from stores import instance_store, instance_type_store
+from queue_manager import send_message
 
 
 def get_instance_types():

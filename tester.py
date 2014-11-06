@@ -3,7 +3,9 @@ import importlib
 import logging
 import time
 
-logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
+logging.basicConfig(format='%(asctime)s %(message)s',
+                    datefmt='%m/%d/%Y %I:%M:%S %p',
+                    level=logging.DEBUG)
 
 from facade import get_all_instances, get_instance_types, create_instance
 
@@ -29,7 +31,7 @@ if __name__ == "__main__":
 
     logging.debug('Submitting creation request')
     i = create_instance('service_a')
-    logging.debug('Instance: %s' , i)
+    logging.debug('Instance: %s', i)
 
     logging.debug('All instances:')
     instances = get_all_instances()

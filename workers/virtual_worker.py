@@ -1,8 +1,9 @@
 import logging
 import time
+
 from queue_managers import get_message_subject, send_message, subscribe
-from worker_helpers import run_in_background, start_publishing_class_type, \
-    stop_publishing_class_type
+from workers.common.class_type_management import start_publishing_class_type, stop_publishing_class_type
+from workers.common.thread_management import run_in_background
 
 
 # template for service creation

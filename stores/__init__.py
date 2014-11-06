@@ -6,7 +6,10 @@ import importlib
 # TODO:  still have to inject the config file path or using command line
 settings = ConfigParser.ConfigParser()
 settings.readfp(open('config.ini'))
-store = importlib.import_module(settings.get('persistency', 'backend'))
+imports = settings.get('persistency', 'backend').rsplit('.', 1)
 
-instance_type_store = store.Store()
-instance_store = store.Store()
+store_module = importlib.import_module(imports[0])
+store_class = getattr(store_module, imports[1])
+
+instance_type_store = store_class()
+instance_store = store_class()

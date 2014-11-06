@@ -1,13 +1,6 @@
 import random
 import threading
 
-
-def run_in_background(func):
-    def background_runner(*args, **kwargs):
-        thread = threading.Thread(target=func, args=args, kwargs=kwargs)
-        thread.start()
-    return background_runner
-
 # stores True for each class type that should be published (we could store
 # threads as well
 publishing_active = dict()

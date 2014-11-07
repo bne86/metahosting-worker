@@ -5,7 +5,7 @@ from queue_managers import get_message_subject, subscribe
 
 
 def init():
-    logging.debug('Init')
+    logging.debug('starting store updater')
     subscribe('info', dispatcher)
 
 

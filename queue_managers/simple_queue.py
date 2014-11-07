@@ -13,7 +13,7 @@ class QueueManager(object):
         if not self.queue_exist(routing_key):
             logging.error('Error no queue for given routing key "%s"',
                           routing_key)
-            return
+            return None
         listener = self.queues[routing_key].popleft()
         listener(message)
         self.queues[routing_key].append(listener)

@@ -6,7 +6,7 @@ import pika
 # 1, when start_consuming is called no new queues can be defined (so we need a
 # predefined set of queues?)
 # 2. if there is no callback registered start_consume exists instantly, so
-#  we start it after the first subscription
+# we start it after the first subscription
 # 3. how to stop the thread?
 #  although it is not such a big problem with a daemon
 
@@ -31,37 +31,31 @@ class BlockingPikaManager():
         self.thread = threading.Thread(target=self.channel.start_consuming)
         self.thread.setDaemon(True)
 
-    def reconnect(self):
-        if self.channel.is_open:
-            self.channel.close()
-
-        if self.connection.is_open:
-            self.connection.close()
-
-        self.connection.connect()
-        self.channel.open()
-
     def publish(self, routing_key, message):
-        logging.debug('dispatching %s: %s', routing_key,
-                      message)
-        #self.channel.queue_declare(routing_key)
+        logging.debug('dispatching %s: %s', routing_key, message)
         self.channel.basic_publish(exchange='', routing_key=routing_key,
-                                   body=json.dumps(message))
+                                   body=json.dumps(message),
+                                   properties=pika.BasicProperties(
+                                       content_type='application/json'))
 
     def subscribe(self, routing_key, listener):
-        #  durable=True?
-        #        self.channel.queue_declare(queue=routing_key)
         def callback_wrapper(ch, method, properties, body):
-            #TODO: type check from props
+            if properties.content_type != 'application/json':
+                logging.error('Invalid content_type %s',
+                              properties.content_type)
+                ch.basic_reject(delivery_tag=method.delivery_tag, requeue=False)
+                logging.debug('Discarding message: %r', body)
+                return
+
             listener(json.loads(body))
-            # we can use explicit acks
-            # or use no_ack=True in basic_consume
             ch.basic_ack(delivery_tag=method.delivery_tag)
+
         logging.debug('Subscribe request for %s' % routing_key)
         self.channel.basic_consume(callback_wrapper, queue=routing_key)
         if not self.thread.is_alive():
             self.thread.start()
 
     def unsubscribe(self, routing_key, listener):
-        logging.info('Method not supported')
+        logging.debug('Method not supported')
+        #self.channel.basic_cancel(consumer_tag=listener.__name__)
 

@@ -5,7 +5,7 @@ from queue_managers import get_message_subject, subscribe
 
 
 def init():
-    logging.debug('[StoreUpdater] Initializing...')
+    logging.debug('Initializing...')
     subscribe('info', dispatcher)
 
 
@@ -18,7 +18,7 @@ def update_instance(instance):
 def dispatcher(message):
     msg_subject = get_message_subject(message)
     if msg_subject is None:
-        logging.error('[StoreUpdater] Invalid message format')
+        logging.error('Invalid message format')
         return
 
     if msg_subject == 'instance_type':

@@ -4,7 +4,7 @@ import pika
 
 # problems:
 # 1, when start_consuming is called no new queues can be defined (so we need a
-#  predefined set of queues?)
+# predefined set of queues?)
 # 2. if there is no callback registered start_consume exists instantly, so
 #  we start it after the first subscription
 # 3. how to stop the thread?
@@ -14,9 +14,18 @@ import logging
 import threading
 import json
 
+# TODO: configuration management:
+# os.getenv('RABBIT_HOST', 'localhost')
+# open question: here or in config?
+
+
 class BlockingPikaManager():
     def __init__(self):
-        logging.debug('[PikaManager] Initializing...')
+        logging.debug('Initializing...')
+        credentials = pika.PlainCredentials('guest', 'guest')
+        self.parameters = \
+            pika.ConnectionParameters('localhost', 5672, '/', credentials)
+
         self.connection = pika.BlockingConnection()
         self.channel = self.connection.channel()
         self.thread = threading.Thread(target=self.channel.start_consuming)
@@ -33,7 +42,7 @@ class BlockingPikaManager():
         self.channel.open()
 
     def publish(self, routing_key, message):
-        logging.debug('[PikaManager] dispatching %s: %s', routing_key,
+        logging.debug('dispatching %s: %s', routing_key,
                       message)
         #self.channel.queue_declare(routing_key)
         self.channel.basic_publish(exchange='', routing_key=routing_key,
@@ -48,11 +57,11 @@ class BlockingPikaManager():
             # we can use explicit acks
             # or use no_ack=True in basic_consume
             ch.basic_ack(delivery_tag=method.delivery_tag)
-
+        logging.debug('Subscribe request for %s' % routing_key)
         self.channel.basic_consume(callback_wrapper, queue=routing_key)
         if not self.thread.is_alive():
             self.thread.start()
 
     def unsubscribe(self, routing_key, listener):
-        logging.debug('Method not supported')
+        logging.info('Method not supported')
 

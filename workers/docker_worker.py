@@ -2,10 +2,13 @@ import logging
 import time
 
 from queue_managers import get_message_subject, send_message, subscribe
-from workers.common.class_type_management import run_in_background, start_publishing_class_type, stop_publishing_class_type
+from workers.common.class_type_management import start_publishing_class_type, \
+    stop_publishing_class_type
 
 
 # template for service creation
+from workers.common.thread_management import run_in_background
+
 instance_class = dict()
 instance_class['name'] = 'service_a'
 instance_class['description'] = 'service_a for doing lot of cool stuff'

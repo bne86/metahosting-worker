@@ -25,7 +25,7 @@ def init():
 
 def dispatcher(message):
     subject = get_message_subject(message)
-    logging.debug('[Worker] Dispatching message: %s', subject)
+    logging.debug('Dispatching message: %s', subject)
     if subject == 'create_instance':
         create_instance(message)
     elif subject == 'delete_instance':

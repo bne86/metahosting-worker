@@ -1,5 +1,10 @@
 import ConfigParser
 import importlib
+import logging
+
+logging.basicConfig(format='[%(filename)s] %(asctime)s %(message)s',
+                    datefmt='%m/%d/%Y %I:%M:%S %p',
+                    level=logging.DEBUG)
 
 # TODO: is it sufficient for dynamically switch between different backends
 # TODO: still have to inject the config file path or using command line

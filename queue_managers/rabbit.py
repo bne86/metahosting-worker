@@ -8,14 +8,15 @@ import pika
 # 2. if there is no callback registered start_consume exists instantly, so
 # we start it after the first subscription
 # 3. how to stop the thread?
-#  although it is not such a big problem with a daemon
+# although it is not such a big problem with a daemon
 
 import logging
 import threading
 import json
 
-# TODO: configuration management:
-# os.getenv('RABBIT_HOST', 'localhost')
+# TODO: configuration management (docker values)
+# os.getenv('RABBIT_PORT_5672_TCP_ADDR', 'localhost')
+# int(os.getenv('RABBIT_PORT_5672_TCP_PORT', 5672))
 # open question: here or in config?
 
 
@@ -43,7 +44,8 @@ class BlockingPikaManager():
             if properties.content_type != 'application/json':
                 logging.error('Invalid content_type %s',
                               properties.content_type)
-                ch.basic_reject(delivery_tag=method.delivery_tag, requeue=False)
+                ch.basic_reject(delivery_tag=method.delivery_tag,
+                                requeue=False)
                 logging.debug('Discarding message: %r', body)
                 return
 
@@ -58,4 +60,3 @@ class BlockingPikaManager():
     def unsubscribe(self, routing_key, listener):
         logging.debug('Method not supported')
         #self.channel.basic_cancel(consumer_tag=listener.__name__)
-

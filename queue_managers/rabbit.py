@@ -12,9 +12,11 @@ import pika
 
 import logging
 import threading
+import json
 
 class BlockingPikaManager():
     def __init__(self):
+        logging.debug('[PikaManager] Initializing...')
         self.connection = pika.BlockingConnection()
         self.channel = self.connection.channel()
         self.thread = threading.Thread(target=self.channel.start_consuming)
@@ -30,19 +32,19 @@ class BlockingPikaManager():
         self.connection.connect()
         self.channel.open()
 
-
     def publish(self, routing_key, message):
         logging.debug('[PikaManager] dispatching %s: %s', routing_key,
                       message)
         #self.channel.queue_declare(routing_key)
         self.channel.basic_publish(exchange='', routing_key=routing_key,
-                                   body=message)
+                                   body=json.dumps(message))
 
     def subscribe(self, routing_key, listener):
         #  durable=True?
-#        self.channel.queue_declare(queue=routing_key)
+        #        self.channel.queue_declare(queue=routing_key)
         def callback_wrapper(ch, method, properties, body):
-            listener(body)
+            #TODO: type check from props
+            listener(json.loads(body))
             # we can use explicit acks
             # or use no_ack=True in basic_consume
             ch.basic_ack(delivery_tag=method.delivery_tag)

@@ -18,14 +18,14 @@ def init():
     # this should be repeated periodically as well, our msg "middleware"
     # can't cope with that at the moment, or we can use the publish method
     # for that.
-    logging.debug('Init')
+    logging.debug('Worker init')
     subscribe(instance_class['name'], dispatcher)
     start_publishing_class_type(instance_class, send_message)
 
 
 def dispatcher(message):
-    # queue(?)
     subject = get_message_subject(message)
+    logging.debug('[Worker] Dispatching message: %s', subject)
     if subject == 'create_instance':
         create_instance(message)
     elif subject == 'delete_instance':

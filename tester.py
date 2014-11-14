@@ -12,11 +12,10 @@ from facade import get_all_instances, get_instance_types, create_instance
 from store_updater import init as updater_init
 updater_init()
 
-settings = ConfigParser.ConfigParser()
-settings.readfp(open('config.ini'))
-worker = importlib.import_module(settings.get('worker', 'backend'))
-worker.init()
-
+# settings = ConfigParser.ConfigParser()
+# settings.readfp(open('config.ini'))
+# worker = importlib.import_module(settings.get('worker', 'backend'))
+# worker.init()
 
 if __name__ == "__main__":
     logging.debug('Starting testing...')
@@ -44,4 +43,3 @@ if __name__ == "__main__":
     instances = get_all_instances()
     for k, v in instances.iteritems():
         logging.debug('%s -- %s', k, v)
-    worker.stop()

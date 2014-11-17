@@ -11,9 +11,9 @@ def get_types():
 def create_instance(instance_type):
     types = get_types()
     if instance_type not in types:
-        logging.debug('Unknown instance type: ', instance_type)
+        logging.debug('Unknown instance type: %s', instance_type)
 
-    logging.debug('Creating instance for %s', instance_type)
+    logging.debug('Creating instance for: %s', instance_type)
     instance = dict()
     instance['id'] = generate_id()
     instance['status'] = 'starting'

@@ -42,7 +42,7 @@ class BlockingPikaManager():
     def subscribe(self, routing_key, listener):
         def callback_wrapper(ch, method, properties, body):
             if properties.content_type != 'application/json':
-                logging.error('Invalid content_type %s',
+                logging.error('Invalid content_type: %s',
                               properties.content_type)
                 ch.basic_reject(delivery_tag=method.delivery_tag,
                                 requeue=False)
@@ -52,7 +52,7 @@ class BlockingPikaManager():
             listener(json.loads(body))
             ch.basic_ack(delivery_tag=method.delivery_tag)
 
-        logging.debug('Subscribe request for %s' % routing_key)
+        logging.debug('Subscribe request for: %s' % routing_key)
         self.channel.basic_consume(callback_wrapper, queue=routing_key)
         if not self.thread.is_alive():
             self.thread.start()

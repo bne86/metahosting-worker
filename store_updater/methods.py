@@ -26,7 +26,7 @@ def update_instance(instance):
 
 def register_type(instance_type):
     if not is_proper_instance_type(instance_type):
-        logging.error('Error: invalid instance type = %s', instance_type)
+        logging.error('Invalid instance type: %s', instance_type)
 
     name = instance_type['name']
     instance_type['ts'] = time.time()

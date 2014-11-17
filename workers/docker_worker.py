@@ -50,7 +50,7 @@ def create_instance(message):
 @run_in_background
 def delete_instance(message):
     instance_id = message['id']
-    logging.debug('Deleting instance (id=%s)' % instance_id)
+    logging.debug('Deleting instance id: %s' % instance_id)
     instance = get_instance(instance_id)
     if instance is None:
         return

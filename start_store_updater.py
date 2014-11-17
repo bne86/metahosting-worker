@@ -1,6 +1,5 @@
 from store_updater import init
 
-
-init()
-
-raw_input('Press any key to stop...')
+if __name__ == "__main__":
+    init()
+    raw_input('Press any key to stop...')

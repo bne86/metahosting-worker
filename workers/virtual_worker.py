@@ -40,7 +40,7 @@ def dispatcher(message):
 @run_in_background
 def create_instance(message):
     instance = message.copy()
-    logging.debug('Creating instance (id=%s)' % instance['id'])
+    logging.debug('Creating instance id: %s' % instance['id'])
     time.sleep(5)
     instance['status'] = 'running'
     update_instance_status(instance['id'], instance)

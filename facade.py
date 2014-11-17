@@ -23,20 +23,19 @@ def create_instance(instance_type_name):
     return instance
 
 
-def get_all_instances():
-    return instance_store.get_all()
-
-
-# client method
 def get_instance(instance_id):
     return instance_store.get(instance_id)
 
 
-def generate_id():
-    return uuid.uuid1().hex
+def get_all_instances():
+    return instance_store.get_all()
 
 
 def get_instances_of_type(instance_type_name):
     def filter_function(x):
         return x[1]['class']['name'] == instance_type_name
     return filter(filter_function, get_all_instances().iteritems())
+
+
+def generate_id():
+    return uuid.uuid1().hex

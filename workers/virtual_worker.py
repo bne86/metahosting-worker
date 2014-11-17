@@ -2,14 +2,15 @@ import logging
 import time
 
 from queue_managers import get_message_subject, send_message, subscribe
-from workers.common.class_type_management import start_publishing_class_type, stop_publishing_class_type
+from workers.common.types_management import start_publishing_type, \
+    stop_publishing_type
 from workers.common.thread_management import run_in_background
 
 
 # template for service creation
-instance_class = dict()
-instance_class['name'] = 'service_a'
-instance_class['description'] = 'service_a for doing lot of cool stuff'
+instance_type = dict()
+instance_type['name'] = 'service_a'
+instance_type['description'] = 'service_a for doing lot of cool stuff'
 
 my_instances = dict()
 
@@ -19,8 +20,8 @@ def init():
     # can't cope with that at the moment, or we can use the publish method
     # for that.
     logging.debug('Worker init')
-    subscribe(instance_class['name'], dispatcher)
-    start_publishing_class_type(instance_class, send_message)
+    subscribe(instance_type['name'], dispatcher)
+    start_publishing_type(instance_type, send_message)
 
 
 def dispatcher(message):
@@ -58,7 +59,7 @@ def delete_instance(message):
 
 # it smells
 def stop():
-    stop_publishing_class_type(instance_class)
+    stop_publishing_type(instance_type)
 
 
 def get_instance(instance_id):

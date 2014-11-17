@@ -1,6 +1,6 @@
 import logging
 import time
-from stores import instance_store, instance_type_store
+from stores import instance_store, type_store
 from queue_managers import get_message_subject
 
 
@@ -11,7 +11,7 @@ def dispatcher(message):
         return
 
     if msg_subject == 'instance_type':
-        register_instance_type(message['class'])
+        register_type(message['type'])
     elif msg_subject == 'instance_info':
         update_instance(instance=message['instance'].copy())
     else:
@@ -24,14 +24,14 @@ def update_instance(instance):
     instance_store.update(instance['id'], instance)
 
 
-def register_instance_type(instance_type):
+def register_type(instance_type):
     if not is_proper_instance_type(instance_type):
         logging.error('Error: invalid instance type = %s', instance_type)
 
     name = instance_type['name']
     instance_type['ts'] = time.time()
-    logging.debug('Registering class: %s', name)
-    instance_type_store.update(name, instance_type)
+    logging.debug('Registering type: %s', name)
+    type_store.update(name, instance_type)
 
 
 def is_proper_instance_type(instance_type):

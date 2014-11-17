@@ -6,14 +6,14 @@ logging.basicConfig(format='%(asctime)s [%(filename)s] %(message)s',
                     datefmt='%m/%d/%Y %I:%M:%S %p',
                     level=logging.DEBUG)
 
-from facade import get_all_instances, get_instance_types, create_instance
+from facade import get_all_instances, get_types, create_instance
 
 from store_updater import init as updater_init
 updater_init()
 
 if __name__ == "__main__":
     logging.debug('Starting testing...')
-    types = get_instance_types()
+    types = get_types()
     logging.debug('Instance types:')
     for r_type in types:
         logging.debug('%s', r_type)

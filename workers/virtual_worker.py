@@ -31,8 +31,6 @@ def dispatcher(message):
         create_instance(message)
     elif subject == 'delete_instance':
         delete_instance(message)
-    elif subject == 'instance_status':
-        publish_instance_status(message['id'])
     else:
         logging.error('Unknown message subject: %s' % subject)
 

@@ -1,42 +1,27 @@
 import logging
 import time
 
-from queue_managers import get_message_subject, send_message, subscribe
-from workers.common.types_management import start_publishing_type, \
-    stop_publishing_type
+from queue_managers import send_message, subscribe
+from workers.common.types_management import start_publishing_type
+from workers.common.dispatcher import Dispatcher
 
-
-# template for service creation
-from workers.common.thread_management import run_in_background
-
+# FIXME: template for service creation, common management
 instance_type = dict()
-instance_type['name'] = 'service_a'
-instance_type['description'] = 'service_a for doing lot of cool stuff'
+instance_type['name'] = 'service_ooa'
+instance_type['description'] = 'service_a for doing less cool stuff'
 
 my_instances = dict()
+my_dispatcher = Dispatcher()
 
 
 def init():
-    # this should be repeated periodically as well, our msg "middleware"
-    # can't cope with that at the moment, or we can use the publish method
-    # for that.
     logging.debug('Init')
-    subscribe(instance_type['name'], dispatcher)
+    subscribe(instance_type['name'], my_dispatcher.dispatch)
+    # FIXME: this should be repeated periodically
     start_publishing_type(instance_type, send_message)
 
 
-def dispatcher(message):
-    # queue(?)
-    subject = get_message_subject(message)
-    if subject == 'create_instance':
-        create_instance(message)
-    elif subject == 'delete_instance':
-        delete_instance(message)
-    else:
-        logging.error('Unknown message subject: %s' % subject)
-
-
-@run_in_background
+@my_dispatcher.callback('create_instance')
 def create_instance(message):
     instance = message.copy()
     logging.debug('Creating instance (id=%s)' % instance['id'])
@@ -45,7 +30,7 @@ def create_instance(message):
     update_instance_status(instance['id'], instance)
 
 
-@run_in_background
+@my_dispatcher.callback('delete_instance')
 def delete_instance(message):
     instance_id = message['id']
     logging.debug('Deleting instance id: %s' % instance_id)
@@ -56,11 +41,7 @@ def delete_instance(message):
     update_instance_status(instance_id, instance)
 
 
-# it smells
-def stop():
-    stop_publishing_type(instance_type)
-
-
+#FIXME: instance info management: probably common for all workers
 def get_instance(instance_id):
     if instance_id not in my_instances:
         return None

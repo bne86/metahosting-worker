@@ -3,6 +3,8 @@ from abstract_kv_store import AbstractKVStore
 
 
 class MingStore(AbstractKVStore):
-    def __init__(self, database, collection):
-        client = ming.create_datastore('mim://').conn
-        self.collection = client[database][collection]
+
+    def initialize_collection(self):
+        client = ming.create_datastore(self.get_property('url')).conn
+        return client[self.get_property('database')][self.get_property(
+            'collection')]

@@ -1,15 +1,21 @@
-import ConfigParser
+from ConfigParser import ConfigParser
 import importlib
 
-# TODO: decide whether this is a appropriate way to dynamically switch between
-# different queue backends
-# TODO:  still have to inject the config file path or using command line
-settings = ConfigParser.ConfigParser()
-settings.readfp(open('config.ini'))
-imports = settings.get('persistency', 'backend').rsplit('.', 1)
+def get_instance(settings, section_name):
+    backend = settings.get(section_name, 'backend')
+    module_name, class_name = backend.rsplit('.', 1)
+    module = importlib.import_module(module_name)
+    clazz = getattr(module, class_name)
 
-store_module = importlib.import_module(imports[0])
-store_class = getattr(store_module, imports[1])
+    items = settings.items(section_name)
+    items.remove(('backend', backend))
 
-type_store = store_class()
-instance_store = store_class()
+    instance = clazz(config={k: v for k, v in items})
+    return instance
+
+
+config = ConfigParser()
+config.readfp(open('config.ini'))
+
+type_store = get_instance(config, 'type_store')
+instance_store = get_instance(config, 'instance_store')

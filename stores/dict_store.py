@@ -1,7 +1,10 @@
 class Store(object):
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         self.store = dict()
+
+    def update_config(self, values):
+        pass
 
     def update(self, name, value):
         self.store[name] = value

@@ -17,7 +17,7 @@ def create_instance(instance_type):
     instance = dict()
     instance['id'] = generate_id()
     instance['status'] = 'starting'
-    instance['type'] = types[instance_type]
+    instance['type'] = instance_type
     send_message(instance_type, 'create_instance', instance)
     send_message('info', 'instance_info', {'instance': instance})
     return instance

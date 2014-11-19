@@ -1,3 +1,4 @@
+
 from store_updater import init
 
 if __name__ == "__main__":

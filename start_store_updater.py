@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 
 from store_updater import init
 

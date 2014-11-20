@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 
 import logging
 from workers import reduced_worker as worker

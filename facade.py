@@ -32,10 +32,8 @@ def get_all_instances():
 
 
 def get_instances_of_type(instance_type_name):
-    def filter_function(x):
-        return x[1]['type']['name'] == instance_type_name
-    return filter(filter_function, get_all_instances().iteritems())
-
+    return {iid: desc for iid, desc in get_all_instances().iteritems() if
+            desc['type'] == instance_type_name}
 
 def generate_id():
     return uuid.uuid1().hex

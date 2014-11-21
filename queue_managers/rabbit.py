@@ -25,9 +25,8 @@ class BlockingPikaManager():
         logging.debug('Initializing...')
         credentials = pika.PlainCredentials('guest', 'guest')
         self.parameters = \
-            pika.ConnectionParameters('localhost', 5672, '/', credentials)
-
-        self.connection = pika.BlockingConnection()
+            pika.ConnectionParameters(host='localhost', port=5672, virtual_host='', credentials=credentials)
+        self.connection = pika.BlockingConnection(self.parameters)
         self.channel = self.connection.channel()
         self.thread = threading.Thread(target=self.channel.start_consuming)
         self.thread.setDaemon(True)

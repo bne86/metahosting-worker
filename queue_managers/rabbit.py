@@ -57,6 +57,5 @@ class BlockingPikaManager():
         if not self.thread.is_alive():
             self.thread.start()
 
-    def unsubscribe(self, routing_key, listener):
-        logging.debug('Method not supported')
+    def unsubscribe(self, routing_key, listener): raise NotImplementedError
         #self.channel.basic_cancel(consumer_tag=listener.__name__)

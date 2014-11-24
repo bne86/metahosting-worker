@@ -24,7 +24,7 @@ def init():
 @my_dispatcher.callback('create_instance')
 def create_instance(message):
     instance = message.copy()
-    logging.debug('Creating instance (id=%s)' % instance['id'])
+    logging.debug('Creating instance (id=%s)', instance['id'])
     time.sleep(5)
     instance['status'] = 'running'
     update_instance_status(instance['id'], instance)
@@ -33,7 +33,7 @@ def create_instance(message):
 @my_dispatcher.callback('delete_instance')
 def delete_instance(message):
     instance_id = message['id']
-    logging.debug('Deleting instance id: %s' % instance_id)
+    logging.debug('Deleting instance id: %s', instance_id)
     instance = get_instance(instance_id)
     if instance is None:
         return

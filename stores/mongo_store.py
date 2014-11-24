@@ -1,5 +1,5 @@
 from pymongo import MongoClient
-from abstract_kv_store import AbstractKVStore
+from stores.abstract_kv_store import AbstractKVStore
 
 
 class MongoStore(AbstractKVStore):

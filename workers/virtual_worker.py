@@ -32,13 +32,13 @@ def dispatcher(message):
     elif subject == 'delete_instance':
         delete_instance(message)
     else:
-        logging.error('Unknown message subject: %s' % subject)
+        logging.error('Unknown message subject: %s', subject)
 
 
 @run_in_background
 def create_instance(message):
     instance = message.copy()
-    logging.debug('Creating instance id: %s' % instance['id'])
+    logging.debug('Creating instance id: %s', instance['id'])
     time.sleep(5)
     instance['status'] = 'running'
     update_instance_status(instance['id'], instance)
@@ -47,7 +47,7 @@ def create_instance(message):
 @run_in_background
 def delete_instance(message):
     instance_id = message['id']
-    logging.debug('Deleting instance (id=%s)' % instance_id)
+    logging.debug('Deleting instance (id=%s)', instance_id)
     instance = get_instance(instance_id)
     if instance is None:
         return

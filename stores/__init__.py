@@ -1,6 +1,7 @@
 from ConfigParser import ConfigParser
 import importlib
 
+
 def get_instance(settings, section_name):
     backend = settings.get(section_name, 'backend')
     module_name, class_name = backend.rsplit('.', 1)

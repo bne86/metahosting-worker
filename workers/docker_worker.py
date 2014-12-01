@@ -1,81 +1,72 @@
+import ConfigParser
 import logging
-import time
 
-from queue_managers import get_message_subject, send_message, subscribe
-from workers.common.types_management import start_publishing_type, \
-    stop_publishing_type
+from docker import Client
+from queue_managers import send_message, subscribe
+from workers.common.dispatcher import Dispatcher
+from workers.common.instance_management import add_local_instance, get_local_instance, update_instance_status
+from workers.common.types_management import start_publishing_type, stop_publishing_type
 
 
-# template for service creation
-from workers.common.thread_management import run_in_background
+settings = ConfigParser.ConfigParser()
+settings.readfp(open('config.ini'))
+instance_class = dict()
+instance_class['name'] = settings.get('docker_worker', 'name')
+instance_class['description'] = settings.get('docker_worker', 'description')
+instance_class['image'] = settings.get('docker_worker', 'image')
 
-instance_type = dict()
-instance_type['name'] = 'service_a'
-instance_type['description'] = 'service_a for doing lot of cool stuff'
+instance_environment = []
+for item in settings.items('docker_worker_env'):
+    instance_environment.append(item[0].upper()+'='+item[1])
 
-my_instances = dict()
+
+my_dispatcher = Dispatcher()
+
+docker_version = settings.get('docker_worker', 'client_version')
+docker = Client(version=docker_version)
 
 
 def init():
-    # this should be repeated periodically as well, our msg "middleware"
-    # can't cope with that at the moment, or we can use the publish method
-    # for that.
-    logging.debug('Init')
-    subscribe(instance_type['name'], dispatcher)
-    start_publishing_type(instance_type, send_message)
+    logging.debug('Initialize docker worker')
+    subscribe(instance_class['name'], my_dispatcher.dispatch)
+    # FIXME: this should be repeated periodically
+    start_publishing_type(instance_class, send_message)
 
 
-def dispatcher(message):
-    # queue(?)
-    subject = get_message_subject(message)
-    if subject == 'create_instance':
-        create_instance(message)
-    elif subject == 'delete_instance':
-        delete_instance(message)
-    else:
-        logging.error('Unknown message subject: %s' % subject)
-
-
-@run_in_background
+@my_dispatcher.callback('create_instance')
 def create_instance(message):
     instance = message.copy()
-    logging.debug('Creating instance (id=%s)' % instance['id'])
-    time.sleep(5)
-    instance['status'] = 'running'
+    logging.debug('Creating instance (id=%s, environment=%s)' % (instance['id'], instance_environment))
+    container = docker.create_container(instance_class['image'], environment=instance_environment)
+    instance['status'] = 'creating'
+    docker.start(container, publish_all_ports=True)
+    add_local_instance(instance['id'], {'container-id': container['Id'], 'status': 'creating'})
     update_instance_status(instance['id'], instance)
 
 
-@run_in_background
+@my_dispatcher.callback('delete_instance')
 def delete_instance(message):
-    instance_id = message['id']
-    logging.debug('Deleting instance id: %s' % instance_id)
-    instance = get_instance(instance_id)
-    if instance is None:
+    instance = message.copy()
+    logging.debug('Deleting instance (id: %s)' % instance['id'])
+    try:
+        instance_id, information = get_local_instance(instance['id'])
+    except TypeError as err:
+        logging.error('Instance not in local store, therefore not deleting it'+err.message)
         return
-    instance['status'] = 'deleted'
-    update_instance_status(instance_id, instance)
+    container_id = information['container-id']
+    container = docker.inspect_container({'Id': container_id})
+    if not container:
+        logging.debug('Container %s for instance %s not available, not stopping it'
+                      % (container_id, instance['id']))
+        return
+    docker.stop(container)
+    # update local store
+    information['status'] = 'deleted'
+    add_local_instance(instance_id, information)
+    # update global store
+    instance['status'] = 'deleting'
+    update_instance_status(instance['id'], instance)
 
 
-# it smells
 def stop():
-    stop_publishing_type(instance_type)
-
-
-def get_instance(instance_id):
-    if instance_id not in my_instances:
-        return None
-    return my_instances[instance_id].copy()
-
-
-def update_instance_status(instance_id, instance):
-    global my_instances
-    instance['id'] = instance_id
-    instance['ts'] = time.time()
-    my_instances[instance_id] = instance
-    publish_instance_status(instance_id)
-
-
-def publish_instance_status(instance_id):
-    instance = get_instance(instance_id)
-    if instance is not None:
-        send_message('info', 'instance_info', {'instance': instance})
+    stop_publishing_type(instance_class)

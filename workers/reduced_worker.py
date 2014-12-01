@@ -1,6 +1,7 @@
 import logging
 import time
 
+from common.instance_management import get_local_instance, update_instance_status
 from queue_managers import send_message, subscribe
 from workers.common.types_management import start_publishing_type
 from workers.common.dispatcher import Dispatcher
@@ -10,7 +11,6 @@ instance_type = dict()
 instance_type['name'] = 'service_ooa'
 instance_type['description'] = 'service_a for doing less cool stuff'
 
-my_instances = dict()
 my_dispatcher = Dispatcher()
 
 
@@ -39,24 +39,3 @@ def delete_instance(message):
         return
     instance['status'] = 'deleted'
     update_instance_status(instance_id, instance)
-
-
-#FIXME: instance info management: probably common for all workers
-def get_instance(instance_id):
-    if instance_id not in my_instances:
-        return None
-    return my_instances[instance_id].copy()
-
-
-def update_instance_status(instance_id, instance):
-    global my_instances
-    instance['id'] = instance_id
-    instance['ts'] = time.time()
-    my_instances[instance_id] = instance
-    publish_instance_status(instance_id)
-
-
-def publish_instance_status(instance_id):
-    instance = get_instance(instance_id)
-    if instance is not None:
-        send_message('info', 'instance_info', {'instance': instance})

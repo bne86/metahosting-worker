@@ -23,6 +23,19 @@ def create_instance(instance_type):
     return instance
 
 
+def delete_instance(instance_id):
+    try:
+        instance = get_instance(instance_id)[1]
+    except TypeError as err:
+        logging.error('Instance not in local store, therefore not deleting it'+err.message)
+        return None
+    logging.debug('Schedule deleting of %s' % instance_id)
+    instance['status'] = 'deleting'
+    send_message(instance['type'], 'delete_instance', instance)
+    send_message('info', 'instance_info', {'instance': instance})
+    return instance
+
+
 def get_instance(instance_id):
     return instance_store.get(instance_id)
 
@@ -34,6 +47,7 @@ def get_all_instances():
 def get_instances_of_type(instance_type_name):
     return {iid: desc for iid, desc in get_all_instances().iteritems() if
             desc['type'] == instance_type_name}
+
 
 def generate_id():
     return uuid.uuid1().hex

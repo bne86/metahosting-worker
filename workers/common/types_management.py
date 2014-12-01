@@ -5,7 +5,7 @@ import threading
 # threads as well)
 publishing_active = dict()
 # how often instance type information should be published
-INTERVAL = 0
+INTERVAL = 10
 
 # options:
 # 1) publishing thread

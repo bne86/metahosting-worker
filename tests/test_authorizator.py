@@ -39,8 +39,8 @@ class AuthorizatorTest(unittest.TestCase):
             self.assertSetEqual(set(), r)
 
         content = {'user_id': 'aa', 'resources': ['1']}
-        with HTTMock(self.get_responsive_mock_for('/1/resources/', 200, content
-        )):
+        with HTTMock(self.get_responsive_mock_for(
+                '/1/resources/', 200, content)):
             r = self.authorizer.get_user_instances(user_id=1)
 
         self.assertIsNotNone(r)

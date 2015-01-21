@@ -13,21 +13,24 @@ class AbstractKVStore(object):
             self.collection = self.initialize_collection()
 
     def update(self, name, value):
-        #self.collection.insert({'name': name, 'value': value})
+        # self.collection.insert({'name': name, 'value': value})
+        # self.collection.update(spec={'name': name},
+        #                        document={'name': name, 'value': value},
+        #                        upsert=True)
         self.collection.update(spec={'name': name},
-                               document={'name': name, 'value': value},
+                               updates={'name': name, 'value': value},
                                upsert=True)
 
     def get(self, name):
         element = self.collection.find_one({'name': name})
         if element is None:
             return None
-        return element['name'], element['value']
+        return element['value']
 
-    def get_all(self, sort_key='ts'):
-        key = 'value.%s' % sort_key
+    def get_all(self, sort_key=''):
+        # key = 'value.%s' % sort_key
         return {
-            i['name']: i['value'] for i in self.collection.find().sort(key)
+            i['name']: i['value'] for i in self.collection.find()
         }
 
     def config_update(self, settings):

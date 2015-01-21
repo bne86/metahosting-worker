@@ -1,6 +1,6 @@
 import logging
 import os
-from stores.mongo_store import MongoStore
+from stores.ming_store import MingStore
 from stores.dict_store import Store
 HOST = 'DB_PORT_27017_TCP_ADDR'
 PORT = 'DB_PORT_27017_TCP_PORT'
@@ -18,8 +18,7 @@ else:
     config['database'] = 'metahosting'
 
     config['collection'] = 'types'
-    type_store = MongoStore(config=config)
+    type_store = MingStore(config=config)
 
     config['collection'] = 'instances'
-    instance_store = MongoStore(config=config)
-
+    instance_store = MingStore(config=config)

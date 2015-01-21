@@ -1,5 +1,7 @@
-class Store(object):
+from copy import copy
 
+
+class Store(object):
     def __init__(self, *args, **kwargs):
         self.store = dict()
 
@@ -7,15 +9,15 @@ class Store(object):
         pass
 
     def update(self, name, value):
-        self.store[name] = value
+        self.store[name] = copy(value)
 
     def get(self, name):
         if name not in self.store:
             return None
-        return self.store[name].copy()
+        return copy(self.store[name])
 
     def get_all(self):
-        return self.store.copy()
+        return copy(self.store)
 
     def remove(self, name):
         if name in self.store:

@@ -16,3 +16,7 @@ class Store(object):
 
     def get_all(self):
         return self.store.copy()
+
+    def remove(self, name):
+        if name in self.store:
+            self.store.pop(name)

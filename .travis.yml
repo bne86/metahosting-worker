@@ -2,9 +2,8 @@ language: python
 python:
  - "2.7"
 #command to install deps:
-install: "pip install -r requirements.txt"
+install: "pip install -r testing_requirements.txt"
 #command to run tests:
 script: 
- - python -m unittest tests.basic
- - python -m unittest tests.advanced
-
+ - find . -name "*.py" -exec pep8 {} \;
+ - nosetests --with-coverage --cover-package=facade,stores,queue_managers,autho

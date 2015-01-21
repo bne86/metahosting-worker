@@ -1,20 +1,19 @@
-import ConfigParser
-import importlib
 import logging
+import os
+from queue_managers.rabbit import BlockingPikaManager
 
-logging.basicConfig(format='[%(filename)s] %(asctime)s %(message)s',
-                    datefmt='%m/%d/%Y %I:%M:%S %p',
-                    level=logging.DEBUG)
+HOST = 'MESSAGING_PORT_5672_TCP_ADDR'
+PORT = 'MESSAGING_PORT_5672_TCP_PORT'
 
-# TODO: is it sufficient for dynamically switch between different backends
-# TODO: still have to inject the config file path or using command line
-settings = ConfigParser.ConfigParser()
-settings.readfp(open('config.ini'))
+if HOST not in os.environ or PORT not in os.environ:
+    logging.warning('Using default messaging connection details. Set [%s, '
+                    '%s].',
+                    HOST, PORT)
 
-imports = settings.get('communication', 'backend').rsplit('.', 1)
+host = os.getenv(HOST, 'localhost')
+port = int(os.getenv(PORT, 5672))
 
-manager_module = importlib.import_module(imports[0])
-manager = getattr(manager_module, imports[1])()
+manager = BlockingPikaManager(host=host, port=port)
 
 
 def send_message(routing_key, subject, message):

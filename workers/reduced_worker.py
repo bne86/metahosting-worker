@@ -34,7 +34,7 @@ def create_instance(message):
 def delete_instance(message):
     instance_id = message['id']
     logging.debug('Deleting instance id: %s', instance_id)
-    instance = get_instance(instance_id)
+    instance = get_local_instance(instance_id)
     if instance is None:
         return
     instance['status'] = 'deleted'

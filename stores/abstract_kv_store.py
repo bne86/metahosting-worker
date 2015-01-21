@@ -24,8 +24,11 @@ class AbstractKVStore(object):
             return None
         return element['name'], element['value']
 
-    def get_all(self):
-        return {i['name']: i['value'] for i in self.collection.find()}
+    def get_all(self, sort_key='ts'):
+        key = 'value.%s' % sort_key
+        return {
+            i['name']: i['value'] for i in self.collection.find().sort(key)
+        }
 
     def config_update(self, settings):
         for k, v in settings.iteritems():

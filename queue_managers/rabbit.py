@@ -14,21 +14,18 @@ import logging
 import threading
 import json
 
-# TODO: configuration management (docker values)
-# os.getenv('RABBIT_PORT_5672_TCP_ADDR', 'localhost')
-# int(os.getenv('RABBIT_PORT_5672_TCP_PORT', 5672))
-# open question: here or in config?
-
 
 class BlockingPikaManager(object):
-    def __init__(self):
+    def __init__(self, host, port):
         logging.debug('Initializing...')
         credentials = pika.PlainCredentials('guest', 'guest')
+        logging.warning('Using default credentials')
         self.parameters = \
-            pika.ConnectionParameters(host='localhost', port=5672,
+            pika.ConnectionParameters(host=host, port=port,
                                       virtual_host='', credentials=credentials)
         self.connection = pika.BlockingConnection(self.parameters)
         self.channel = self.connection.channel()
+        logging.debug('Connected to messaging')
         self.thread = threading.Thread(target=self.channel.start_consuming)
         self.thread.setDaemon(True)
 

@@ -1,6 +1,8 @@
 language: python
 python:
  - "2.7"
+services:
+  - rabbitmq
 #command to install deps:
 install: "pip install -r testing_requirements.txt"
 #command to run tests:

@@ -17,8 +17,7 @@ from retrying import retry
 
 
 class BlockingPikaManager(object):
-
-    def __init__(self, host, port, queue):
+    def __init__(self, host, port, queue=None):
         logging.debug('Initializing...')
         credentials = pika.PlainCredentials('guest', 'guest')
         logging.warning('Using default credentials')
@@ -28,7 +27,8 @@ class BlockingPikaManager(object):
         self.connection = self._get_connection()
 
         self.channel = self.connection.channel()
-        self.channel.queue_declare(queue=queue)
+        if queue is not None:
+            self.channel.queue_declare(queue=queue)
         logging.debug('Connected to messaging')
         self.thread = threading.Thread(target=self.channel.start_consuming)
         self.thread.setDaemon(True)

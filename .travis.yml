@@ -4,7 +4,7 @@ python:
 services:
   - rabbitmq
 #command to install deps:
-install: "pip install -r testing_requirements.txt"
+install: "pip install -r testing_requirements.txt && pip install -r requirements.txt"
 #command to run tests:
 script: 
  - find . -name "*.py" -exec pep8 {} \;

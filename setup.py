@@ -14,7 +14,7 @@ setup(
         'argparse==1.2.1',
         'astroid==1.2.1',
         'docker-py==0.6.0',
-        # Ming==0.5.0
+        'Ming==0.5.0',
         'pep8==1.4.6',
         'pika==0.9.14',
         'pymongo==2.7.2',

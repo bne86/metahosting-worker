@@ -17,6 +17,7 @@ setup(
         # Ming==0.5.0
         'pep8==1.4.6',
         'pika==0.9.14',
-        'pymongo==2.7.2'
+        'pymongo==2.7.2',
+        'retrying==1.3.3',
     ]
 )

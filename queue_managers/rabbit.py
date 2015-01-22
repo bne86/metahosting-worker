@@ -13,21 +13,29 @@ import pika
 import logging
 import threading
 import json
+from retrying import retry
 
 
 class BlockingPikaManager(object):
-    def __init__(self, host, port):
+
+    def __init__(self, host, port, queue):
         logging.debug('Initializing...')
         credentials = pika.PlainCredentials('guest', 'guest')
         logging.warning('Using default credentials')
         self.parameters = \
             pika.ConnectionParameters(host=host, port=port,
                                       virtual_host='', credentials=credentials)
-        self.connection = pika.BlockingConnection(self.parameters)
+        self.connection = self._get_connection()
+
         self.channel = self.connection.channel()
+        self.channel.queue_declare(queue=queue)
         logging.debug('Connected to messaging')
         self.thread = threading.Thread(target=self.channel.start_consuming)
         self.thread.setDaemon(True)
+
+    @retry(wait_exponential_multiplier=1000, wait_exponential_max=10000)
+    def _get_connection(self):
+        return pika.BlockingConnection(self.parameters)
 
     def publish(self, routing_key, message):
         logging.debug('dispatching %s: %s', routing_key, message)

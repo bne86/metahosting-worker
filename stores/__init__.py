@@ -13,8 +13,9 @@ if HOST not in os.environ or PORT not in os.environ:
                     HOST, PORT)
 else:
     config = dict()
-    config['url'] = 'mongodb://%s:%s' % (os.getenv(HOST, 'localhost'),
-                                         os.getenv(PORT, '27017'))
+    config['url'] = 'mongodb://%s:%s/metahosting' % (
+        os.getenv(HOST, 'localhost'),
+        os.getenv(PORT, '27017'))
     config['database'] = 'metahosting'
 
     config['collection'] = 'types'

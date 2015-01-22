@@ -1,0 +1,21 @@
+messaging:
+  image: dockerfile/rabbitmq:latest
+  ports:
+   - 15672
+db:
+  image: mongo:latest
+autho:
+  image: httpprincess/authorizator:latest
+  ports:
+   - 5000
+updater:
+  image: httpprincess/store-updater:latest
+  links:
+    - db
+    - messaging
+facade:
+   build: .
+   links:
+    - db
+    - autho
+    - messaging

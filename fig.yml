@@ -9,10 +9,15 @@ autho:
   ports:
    - 5000
 updater:
-  image: httpprincess/store-updater:latest
+  image: httpprincess/store-updater:master
   links:
     - db
     - messaging
+#worker:
+#  image: reduced_worker:latest
+#  links:
+#    - messaging
+#  command: /app/start_reduced_worker.py
 facade:
    build: .
    links:

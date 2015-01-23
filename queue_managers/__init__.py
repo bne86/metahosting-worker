@@ -32,8 +32,9 @@ if HOST not in os.environ or PORT not in os.environ:
         host = config.get('communication', 'host')
         port = int(config.get('communication', 'port'))
     except IOError or ConfigParser.NoOptionError as err:
-        logging.error('Establishing messaging not possible because both '
+        logging.debug('Establishing messaging not possible because both '
                       'env and config are not valid')
+        logging.error(err)
         exit(1)
 else:
     host = os.getenv(HOST, 'localhost')

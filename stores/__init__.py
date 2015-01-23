@@ -7,6 +7,7 @@ from stores.dict_store import Store
 
 HOST = 'DB_PORT_27017_TCP_ADDR'
 PORT = 'DB_PORT_27017_TCP_PORT'
+DICT_STORE = False
 
 # if ENV not set in a default way, try to get other
 # variables or a configuration file.
@@ -33,22 +34,28 @@ if HOST not in os.environ or PORT not in os.environ:
         host = config.get('persistency', 'host')
         port = int(config.get('persistency', 'port'))
     except IOError or ConfigParser.NoOptionError as err:
-        logging.error('Establishing persistency connection not possible '
-                      'because both env and config are not valid')
-        exit(1)
+        logging.debug('Establishing persistency connection not possible '
+                      'because both env and config are not valid,'
+                      'use memory store')
+        logging.error(err)
+        DICT_STORE = True
 else:
     host = os.getenv(HOST, 'localhost')
     port = int(os.getenv(PORT, 27017))
 
-logging.debug('Try to establish connection to persistency via '
-              'host %s on port %s', host, port)
 
-configuration = dict()
-configuration['url'] = 'mongodb://%s:%s/metahosting' % (host, port)
-configuration['database'] = 'metahosting'
+if DICT_STORE:
+    type_store = Store()
+    instance_store = Store()
+else:
+    logging.debug('Try to establish connection to persistency via '
+                  'host %s on port %s', host, port)
+    configuration = dict()
+    configuration['url'] = 'mongodb://%s:%s/metahosting' % (host, port)
+    configuration['database'] = 'metahosting'
 
-configuration['collection'] = 'types'
-type_store = MingStore(config=configuration)
+    configuration['collection'] = 'types'
+    type_store = MingStore(config=configuration)
 
-configuration['collection'] = 'instances'
-instance_store = MingStore(config=configuration)
+    configuration['collection'] = 'instances'
+    instance_store = MingStore(config=configuration)

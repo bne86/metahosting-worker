@@ -17,7 +17,7 @@ if HOST not in os.environ or PORT not in os.environ:
     try:
         envvars.readfp(open('envvars.ini'))
         HOST = envvars.get('persistency', 'HOST_VARIABLE')
-        HOST = envvars.get('persistency', 'PORT_VARIABLE')
+        PORT = envvars.get('persistency', 'PORT_VARIABLE')
     except IOError as err:
         logging.debug('Option file for environment variables not found.')
         logging.error(err)
@@ -25,8 +25,12 @@ if HOST not in os.environ or PORT not in os.environ:
         logging.debug('Options not found in environment variable option file.')
         logging.error(err)
 
+# initialize with defaults
+host = 'localhost'
+port = 27017
+
 # if new ENVs still not set, we should look for a configuration file,
-# otherwise configure the messaging
+# otherwise configure the storage
 if HOST not in os.environ or PORT not in os.environ:
     config = ConfigParser.ConfigParser()
     try:
@@ -36,7 +40,8 @@ if HOST not in os.environ or PORT not in os.environ:
     except IOError or ConfigParser.NoOptionError as err:
         logging.debug('Establishing persistency connection not possible '
                       'because both env and config are not valid,'
-                      'use memory store')
+                      'using memory store')
+        # perhaps better to just die?
         logging.error(err)
         DICT_STORE = True
 else:
@@ -48,8 +53,7 @@ if DICT_STORE:
     type_store = Store()
     instance_store = Store()
 else:
-    logging.debug('Try to establish connection to persistency via '
-                  'host %s on port %s', host, port)
+    logging.debug('Connecting to store on %s:%s', host, port)
     configuration = dict()
     configuration['url'] = 'mongodb://%s:%s/metahosting' % (host, port)
     configuration['database'] = 'metahosting'

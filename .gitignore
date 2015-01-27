@@ -58,3 +58,5 @@ target/
 
 # scripts
 deploy_worker.sh
+
+worker-config-local.ini

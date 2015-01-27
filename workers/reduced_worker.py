@@ -1,41 +1,35 @@
 import logging
 import time
 
-from common.instance_management import get_local_instance, update_instance_status
-from queue_managers import send_message, subscribe
-from workers.common.types_management import start_publishing_type
-from workers.common.dispatcher import Dispatcher
-
-# FIXME: template for service creation, common management
-instance_type = dict()
-instance_type['name'] = 'service_ooa'
-instance_type['description'] = 'service_a for doing less cool stuff'
-
-my_dispatcher = Dispatcher()
+from workers.worker import Worker
 
 
-def init():
-    logging.debug('Init')
-    subscribe(instance_type['name'], my_dispatcher.dispatch)
-    # FIXME: this should be repeated periodically
-    start_publishing_type(instance_type, send_message)
+class ReducedWorker(Worker):
+    def __init__(self, config, local_instances):
+        """
+        Call super-class constructor for common configuration items and
+        then do the docker-specific setup
+        :param config: dict containing the configuration
+        :param local_instances: storage backend for worker-local instances
+        :return: -
+        """
+        logging.debug('Initialize reduced worker')
+        super(ReducedWorker, self).__init__(config, local_instances)
 
+    @Worker.callback('create_instance')
+    def create_instance(self, message):
+        instance = message.copy()
+        logging.debug('Creating instance (id=%s)', instance['id'])
+        time.sleep(5)
+        instance['status'] = 'running'
+        self.instances.update_instance_status(instance['id'], instance)
 
-@my_dispatcher.callback('create_instance')
-def create_instance(message):
-    instance = message.copy()
-    logging.debug('Creating instance (id=%s)', instance['id'])
-    time.sleep(5)
-    instance['status'] = 'running'
-    update_instance_status(instance['id'], instance)
-
-
-@my_dispatcher.callback('delete_instance')
-def delete_instance(message):
-    instance_id = message['id']
-    logging.debug('Deleting instance id: %s', instance_id)
-    instance = get_local_instance(instance_id)
-    if instance is None:
-        return
-    instance['status'] = 'deleted'
-    update_instance_status(instance_id, instance)
+    @Worker.callback('delete_instance')
+    def delete_instance(self, message):
+        instance_id = message['id']
+        logging.debug('Deleting instance id: %s', instance_id)
+        instance = self.instances.get_local_instance(instance_id)
+        if instance is None:
+            return
+        instance['status'] = 'deleted'
+        self.instances.update_instance_status(instance_id, instance)

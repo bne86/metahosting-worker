@@ -1,77 +1,84 @@
-import ConfigParser
+from docker.client import Client
+from docker.tls import TLSConfig
 import logging
-
-from docker import Client
-from queue_managers import send_message, subscribe
-from workers.common.dispatcher import Dispatcher
-from workers.common.instance_management import add_local_instance, \
-    get_local_instance, update_instance_status
-from workers.common.types_management import start_publishing_type, \
-    stop_publishing_type
+from workers.worker import Worker
 
 
-settings = ConfigParser.ConfigParser()
-settings.readfp(open('config.ini'))
-instance_class = dict()
-instance_class['name'] = settings.get('docker_worker', 'name')
-instance_class['description'] = settings.get('docker_worker', 'description')
-instance_class['image'] = settings.get('docker_worker', 'image')
+class DockerWorker(Worker):
+    def __init__(self, config, local_instances):
+        """
+        Call super-class constructor for common configuration items and
+        then do the docker-specific setup
+        :param config: dict containing the configuration
+        :param local_instances: storage backend for worker-local instances
+        :return: -
+        """
+        super(DockerWorker, self).__init__(config, local_instances)
+        logging.debug('Initialize docker worker')
 
-instance_environment = []
-for item in settings.items('docker_worker_env'):
-    instance_environment.append(item[0].upper() + '=' + item[1])
+        self.worker_info['image'] = self.config['worker']['image']
+        if self.config['worker']['tls_verify'] == 'True':
+            verify = True
+        else:
+            verify = False
+        keys = self.config['worker'].keys()
+        # docker is remote or SSL used locally:
+        if 'client_cert' in keys and 'client_key' in keys \
+                and 'tls_verify' in keys:
+            tls_config = TLSConfig(client_cert=
+                                   (self.config['worker']['client_cert'],
+                                    self.config['worker']['client_key'],),
+                                   verify=verify)
+            self.docker = Client(base_url=self.config['worker']['base_url'],
+                                 version=self.config['worker'][
+                                     'client_version'],
+                                 tls=tls_config)
+        else:
+            self.docker = Client(base_url=self.config['worker']['base_url'],
+                                 version=self.config['worker'][
+                                     'client_version'])
+        # load image if its not already available
+        self.docker.import_image(image=self.worker_info['image'])
 
-my_dispatcher = Dispatcher()
+    @Worker.callback('create_instance')
+    def create_instance(self, message):
+        instance = message.copy()
+        logging.debug('Creating instance (id=%s, environment=%s)',
+                      instance['id'],
+                      self.build_parameters)
+        container = self.docker.create_container(
+            self.worker_info['image'],
+            environment=self.build_parameters)
+        instance['status'] = 'creating'
+        self.docker.start(container, publish_all_ports=True)
+        self.instances.add_local_instance(instance['id'],
+                                          {'container-id': container['Id'],
+                                           'status': 'creating'})
+        self.instances.update_instance_status(instance['id'], instance)
 
-docker_version = settings.get('docker_worker', 'client_version')
-docker = Client(version=docker_version)
-
-
-def init():
-    logging.debug('Initialize docker worker')
-    subscribe(instance_class['name'], my_dispatcher.dispatch)
-    start_publishing_type(instance_class, send_message)
-
-
-@my_dispatcher.callback('create_instance')
-def create_instance(message):
-    instance = message.copy()
-    logging.debug('Creating instance (id=%s, environment=%s)', instance['id'],
-                  instance_environment)
-    container = docker.create_container(instance_class['image'],
-                                        environment=instance_environment)
-    instance['status'] = 'creating'
-    docker.start(container, publish_all_ports=True)
-    add_local_instance(instance['id'],
-                       {'container-id': container['Id'], 'status': 'creating'})
-    update_instance_status(instance['id'], instance)
-
-
-@my_dispatcher.callback('delete_instance')
-def delete_instance(message):
-    instance = message.copy()
-    logging.debug('Deleting instance (id: %s)', instance['id'])
-    try:
-        instance_id, information = get_local_instance(instance['id'])
-    except TypeError as err:
-        logging.error(
-            'Instance not in local store, therefore not deleting it' + err.message)
-        return
-    container_id = information['container-id']
-    container = docker.inspect_container({'Id': container_id})
-    if not container:
-        logging.debug(
-            'Container %s for instance %s not available, not stopping it',
-            container_id, instance['id'])
-        return
-    docker.stop(container)
-    # update local store
-    information['status'] = 'deleted'
-    add_local_instance(instance_id, information)
-    # update global store
-    instance['status'] = 'deleting'
-    update_instance_status(instance['id'], instance)
-
-
-def stop():
-    stop_publishing_type(instance_class)
+    @Worker.callback('delete_instance')
+    def delete_instance(self, message):
+        instance = message.copy()
+        logging.debug('Deleting instance (id: %s)', instance['id'])
+        try:
+            instance_id, information = self.instances.get_local_instance(
+                instance['id'])
+        except TypeError as err:
+            logging.error(
+                'Instance not in local store, '
+                'therefore not deleting it' + err.message)
+            return
+        container_id = information['container-id']
+        container = self.docker.inspect_container({'Id': container_id})
+        if not container:
+            logging.debug(
+                'Container %s for instance %s not available, not stopping it',
+                container_id, instance['id'])
+            return
+        self.docker.stop(container)
+        # update local store
+        information['status'] = 'deleted'
+        self.instances.add_local_instance(instance_id, information)
+        # update global store
+        instance['status'] = 'deleting'
+        self.instances.update_instance_status(instance['id'], instance)

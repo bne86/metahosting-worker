@@ -1,5 +1,4 @@
 import os
-from autho.local import LocalAuthorizer
 from autho.remote import RemoteAuthorizer
 
 HOST = 'AUTHO_PORT_5000_TCP_ADDR'
@@ -13,4 +12,3 @@ def get_authorizer():
         return RemoteAuthorizer(url=url, user='service2', password='simple')
     print 'set environment variables:%s %s to use remote authorizer' % \
           (HOST, PORT)
-    return LocalAuthorizer()

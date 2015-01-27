@@ -25,7 +25,7 @@ class Facade(object):
                                           instance_type=instance_type)
         # return value ignored?
         self.authorization.make_owner(uid, instance['id'])
-        self._instances.update(instance['id'], instance.copy())
+        # self._instances.update(instance['id'], instance.copy())
         send_message(instance_type, 'create_instance', instance)
         send_message('info', 'instance_info', {'instance': instance})
         return instance

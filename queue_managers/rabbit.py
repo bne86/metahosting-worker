@@ -35,10 +35,11 @@ class BlockingPikaManager(object):
 
     @retry(wait_exponential_multiplier=1000, wait_exponential_max=10000)
     def _get_connection(self):
+        logging.info('Establishing connection')
         return pika.BlockingConnection(self.parameters)
 
     def publish(self, routing_key, message):
-        logging.debug('dispatching %s: %s', routing_key, message)
+        logging.debug('Dispatching %s: %s', routing_key, message)
         self.channel.basic_publish(exchange='', routing_key=routing_key,
                                    body=json.dumps(message),
                                    properties=pika.BasicProperties(

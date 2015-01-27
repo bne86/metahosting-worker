@@ -11,4 +11,4 @@ install: "pip install -r testing_requirements.txt && pip install -r requirements
 #command to run tests:
 script: 
  - find . -name "*.py" -exec pep8 {} \;
- - nosetests --with-coverage --cover-package=facade,stores,queue_managers,autho
+ - nosetests --with-coverage --cover-package=facade,stores,queue_managers,autho,config_manager

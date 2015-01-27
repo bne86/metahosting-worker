@@ -7,20 +7,20 @@ from queue_managers.rabbit import BlockingPikaManager
 DEFAULT_HOST = 'localhost'
 DEFAULT_PORT = 5672
 
-envvars = ConfigParser.SafeConfigParser(
+var_config = ConfigParser.SafeConfigParser(
     {'HOST_VARIABLE': 'MESSAGING_PORT_5672_TCP_ADDR',
      'PORT_VARIABLE': 'MESSAGING_PORT_5672_TCP_PORT'})
-envvars.read('envvars.ini')
-HOST = envvars.get('messaging', 'HOST_VARIABLE')
-PORT = envvars.get('messaging', 'PORT_VARIABLE')
+var_config.read('envvars.ini')
+HOST = var_config.get('messaging', 'HOST_VARIABLE')
+PORT = var_config.get('messaging', 'PORT_VARIABLE')
 
 if HOST not in os.environ or PORT not in os.environ:
     config = ConfigParser.SafeConfigParser(
         {'host': DEFAULT_HOST, 'port': DEFAULT_PORT}
     )
     config.read('config.ini')
-    host = config.get('communication', 'host')
-    port = int(config.get('communication', 'port'))
+    host = config.get('messaging', 'host')
+    port = int(config.get('messaging', 'port'))
 else:
     host = os.getenv(HOST, DEFAULT_HOST)
     port = int(os.getenv(PORT, DEFAULT_PORT))

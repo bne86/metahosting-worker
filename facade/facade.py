@@ -17,7 +17,7 @@ class Facade(object):
         self._types.update(name, description)
 
     def create_instance(self, instance_type, uid):
-        logging.debug('Creating instance of %s' % instance_type)
+        logging.debug('Creating instance of %s', instance_type)
         if instance_type not in self.get_types():
             return None
 
@@ -31,8 +31,7 @@ class Facade(object):
         return instance
 
     def delete_instance(self, instance_id, uid):
-        logging.debug('Delete instance is not yet implemented %s' %
-                      instance_id)
+        logging.debug('Delete instance is not yet implemented %s', instance_id)
         if not self._instances.get(instance_id) or not \
                 self.authorization.is_user_instance(instance_id=instance_id,
                                                     user_id=uid):

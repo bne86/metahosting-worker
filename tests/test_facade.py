@@ -1,3 +1,4 @@
+from copy import copy
 import unittest
 from facade import Facade
 from autho import RemoteAuthorizer
@@ -89,10 +90,12 @@ class FacadeTest(unittest.TestCase):
         # authorized
         self.author.is_user_instance = Mock(return_value=True)
         for instance in self.instances:
+            self.instance_store.get = Mock(return_value=instance)
             result = self.facade.get_instance(instance_id=instance['id'],
                                               uid=self.user_id)
             self.author.is_user_instance.assert_called_with(instance['id'],
                                                             self.user_id)
+            self.instance_store.get.assert_called_with(instance['id'])
             self.assertIsNotNone(result)
             self.assertTrue('id' in result)
             self.assertEqual(result['id'], instance['id'])
@@ -109,13 +112,14 @@ class FacadeTest(unittest.TestCase):
         for instance in self.instances:
             id_list.append(instance['id'])
 
-        self.author.get_user_instances = Mock(return_value=id_list)
+        self.author.get_user_instances = Mock(return_value=copy(id_list))
         self.author.is_user_instance = Mock(return_value=True)
+        self.instance_store.get = Mock(return_value={'id': '1121'})
         instances = self.facade.get_all_instances(uid=self.user_id)
         self.assertIsNotNone(instances)
         self.assertEqual(len(instances), len(id_list))
-        for ids in id_list:
-            self.assertTrue(ids in instances)
+        for inst_id in id_list:
+            self.assertTrue(inst_id in instances)
 
     def test_get_instances_of_type(self):
         # non-existing type
@@ -136,6 +140,9 @@ class FacadeTest(unittest.TestCase):
         for instance in self.instances:
             user_instances.add(instance['id'])
 
+        self.instance_store.update(self.instances[0]['id'], self.instances[0])
+        self.instance_store.update(self.instances[1]['id'], self.instances[1])
+
         self.author.get_user_instances = Mock(return_value=user_instances)
         instances = self.facade.get_instances_of_type(self.service_name1,
                                                       self.user_id)
@@ -145,6 +152,7 @@ class FacadeTest(unittest.TestCase):
         self.assertTrue(self.instances[0]['id'] in instances)
         self.assertTrue(self.instances[1]['id'] in instances)
 
+        self.instance_store.update(self.instances[2]['id'], self.instances[2])
         instances = self.facade.get_instances_of_type(self.service_name2,
                                                       self.user_id)
         self.assertIsNotNone(instances)
@@ -158,9 +166,11 @@ class FacadeTest(unittest.TestCase):
 
         # delete unauthorized
         self.author.is_user_instance = Mock(return_value=False)
+        self.instance_store.get = Mock(return_value=self.instances[0])
         r = self.facade.delete_instance(instance_id=self.instances[0]['id'],
                                         uid=self.unauthorized_user)
         self.assertFalse(r)
+        self.instance_store.get.assert_called_with(self.instances[0]['id'])
         self.author.is_user_instance.assert_called_with(
             instance_id=self.instances[0]['id'],
             user_id=self.unauthorized_user)

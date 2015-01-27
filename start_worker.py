@@ -5,7 +5,6 @@ import ConfigParser
 import importlib
 import logging
 from workers.common.instance_management import LocalInstanceManagement
-from workers.docker_worker import DockerWorker
 
 
 def _get_cfg_as_dict(config):

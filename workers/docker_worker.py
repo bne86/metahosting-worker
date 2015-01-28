@@ -1,5 +1,6 @@
 from docker.client import Client
 from docker.tls import TLSConfig
+import docker.errors
 import logging
 import random
 import string
@@ -68,7 +69,12 @@ class DockerWorker(Worker):
                           'therefore not deleting it' + err.message)
             return
         container_id = instance_local['local']['Id']
-        container = self.docker.inspect_container({'Id': container_id})
+        try:
+            container = self.docker.inspect_container({'Id': container_id})
+        except docker.errors.APIError as error:
+            logging.error('Container %s for instance %s not available, not '
+                          'stopping it', container_id, instance['id'], error)
+            return
         if not container:
             logging.debug(
                 'Container %s for instance %s not available, not stopping it',

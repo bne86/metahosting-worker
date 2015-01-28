@@ -17,11 +17,11 @@ class Worker(object):
         self.worker_info = dict()
         self.worker_info['name'] = config['worker']['name']
         self.worker_info['description'] = config['worker']['description']
-        self.build_parameters = []
-        if 'worker_env' in self.config:
-            for item in self.config['worker_env'].keys():
-                self.build_parameters.append(item.upper() + '=' +
-                                             self.config['worker_env'][item])
+        self.worker_info['environment'] = dict()
+        if 'configurable_env' in self.config:
+            for item in self.config['configurable_env'].keys():
+                self.worker_info['environment'][item.upper()] \
+                    = self.config['configurable_env'][item]
 
     def start(self):
         subscribe(self.worker_info['name'], self.dispatch)

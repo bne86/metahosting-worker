@@ -27,23 +27,33 @@ class LocalInstanceManagement:
         self._instances = backend_class(config=config['local_instance_info'])
 
         logging.debug('We already have \n%s\nstored',
-                      self.get_local_instances())
+                      self.get_instances())
 
-    def get_local_instance(self, instance_id):
+    def get_instance(self, instance_id):
         return self._instances.get(instance_id)
 
-    def get_local_instances(self):
+    def get_instances(self):
         return self._instances.get_all()
 
-    def add_local_instance(self, instance_id, instance):
+    def set_instance(self, instance_id, instance):
+        instance['ts'] = time.time()
         self._instances.update(instance_id, instance)
 
-    def publish_instance_status(self, instance_id):
-        instance = self.get_local_instance(instance_id)
-        if instance is not None:
-            send_message('info', 'instance_info', {'instance': instance})
+    def publish_instance(self, instance_id, filter_fields=['local']):
+        """
+        Send information of the corresponding instance to the messaging system
+        Do not send 'local' tagged information from the local storage backend
 
-    def update_instance_status(self, instance_id, instance):
-        instance['id'] = instance_id
-        instance['ts'] = time.time()
-        send_message('info', 'instance_info', {'instance': instance})
+        :param instance_id: id of the instance that we publish information for
+        :param filter_fields: array of dict keys that we do not want to publish,
+        default = local
+        :return: -
+        """
+        instance = self.get_instance(instance_id)
+        if instance is not None:
+            for item in filter_fields:
+                try:
+                    instance.pop(item)
+                except KeyError as err:
+                    logging.error('Item %s not removed', item, err)
+            send_message('info', 'instance_info', {'instance': instance})

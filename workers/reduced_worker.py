@@ -22,14 +22,15 @@ class ReducedWorker(Worker):
         logging.debug('Creating instance (id=%s)', instance['id'])
         time.sleep(5)
         instance['status'] = 'running'
-        self.instances.update_instance_status(instance['id'], instance)
+        self.instances.set_instance(instance['id'], instance)
+        self.instances.publish_instance(instance['id'], instance)
 
     @Worker.callback('delete_instance')
     def delete_instance(self, message):
         instance_id = message['id']
         logging.debug('Deleting instance id: %s', instance_id)
-        instance = self.instances.get_local_instance(instance_id)
+        instance = self.instances.get_instance(instance_id)
         if instance is None:
             return
         instance['status'] = 'deleted'
-        self.instances.update_instance_status(instance_id, instance)
+        self.instances.publish_instance(instance_id, instance)

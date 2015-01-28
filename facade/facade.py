@@ -16,16 +16,17 @@ class Facade(object):
     def add_type(self, name, description):
         self._types.update(name, description)
 
-    def create_instance(self, instance_type, uid):
+    def create_instance(self, instance_type, uid, environment=None):
         logging.debug('Creating instance of %s', instance_type)
         if instance_type not in self.get_types():
             return None
 
         instance = self._prepare_instance(status='starting',
-                                          instance_type=instance_type)
+                                          instance_type=instance_type,
+                                          environment=environment)
         # return value ignored?
         self.authorization.make_owner(uid, instance['id'])
-        # self._instances.update(instance['id'], instance.copy())
+        # self._instances.update(instance['id'], instance.copy())run
         send_message(instance_type, 'create_instance', instance)
         send_message('info', 'instance_info', {'instance': instance})
         return instance
@@ -68,10 +69,13 @@ class Facade(object):
         return uuid.uuid1().hex
 
     @staticmethod
-    def _prepare_instance(status, instance_type):
+    def _prepare_instance(status, instance_type, environment):
         instance = dict()
         instance['id'] = Facade._generate_id()
         instance['status'] = status
         instance['type'] = instance_type
         instance['ts'] = time()
+        if environment:
+            instance['environment'] = environment
+
         return instance

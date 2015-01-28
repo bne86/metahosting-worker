@@ -45,8 +45,8 @@ class LocalInstanceManagement:
         Do not send 'local' tagged information from the local storage backend
 
         :param instance_id: id of the instance that we publish information for
-        :param filter_fields: array of dict keys that we do not want to publish,
-        default = local
+        :param filter_fields: array of dict keys that we do not want to
+        publish, default = local
         :return: -
         """
         instance = self.get_instance(instance_id)

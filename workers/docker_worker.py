@@ -2,8 +2,6 @@ from docker.client import Client
 from docker.tls import TLSConfig
 import docker.errors
 import logging
-import random
-import string
 from workers.worker import Worker
 
 
@@ -42,7 +40,6 @@ class DockerWorker(Worker):
                                      'client_version'])
         # load image if its not already available
         self.docker.import_image(image=self.worker_info['image'])
-
 
     @Worker.callback('create_instance')
     def create_instance(self, message):
@@ -87,39 +84,3 @@ class DockerWorker(Worker):
         # update global store
         self.instances.publish_instance(instance['id'],
                                         ['local', 'environment'])
-
-    def _create_container_environment(self, message):
-        """
-        Merge the build_parameters configured for the worker and gotten from
-        the facade.
-        :rtype : list
-        Policy: Only override worker-local parameters. If a parameter is empty,
-        generate a value using lowercase, uppercase and digits.
-        :param message: dict containing the message gotten from the bus
-        :return: list containing key=value pairs send to docker
-        """
-        if 'environment' in message.keys():
-            injected_parameters = message['environment']
-        else:
-            injected_parameters = dict()
-        if 'environment' in self.worker_info.keys():
-            local_parameters = self.worker_info['environment']
-        else:
-            local_parameters = dict()
-        environment = []
-        for key in local_parameters.keys():
-            if key in injected_parameters.keys():
-                environment.append(key + '=' + injected_parameters[key])
-            else:
-                if local_parameters[key] == '':
-                    environment.append(key + '=' + ''.join(
-                        random.SystemRandom().choice(
-                            string.ascii_lowercase +
-                            string.ascii_uppercase +
-                            string.digits)
-                        for _ in range(16)))
-                else:
-                    environment.append(key + '=' + local_parameters[key])
-        logging.debug('Current environment for VM: %s', environment)
-        return environment
-

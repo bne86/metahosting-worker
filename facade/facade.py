@@ -38,11 +38,7 @@ class Facade(object):
                                                     user_id=uid):
             return False
         instance = self._instances.get(instance_id)
-        # this will not work properly as we don't use broadcast
         send_message(instance['type'], 'delete_instance', instance)
-        instance['status'] = 'deleted'
-        send_message('info', 'instance_info', {'instance': instance})
-        # self._instances.remove(instance_id)
         return self.authorization.revoke_ownership(user_id=uid,
                                                    instance_id=instance_id)
 

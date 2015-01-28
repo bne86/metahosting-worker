@@ -1,13 +1,16 @@
 messaging:
   image: dockerfile/rabbitmq:latest
   ports:
-   - 15672
+   - "5672:5672"
+   - "15672:15672"
 db:
   image: mongo:latest
+  ports:
+   - "27017:27017"
 autho:
   image: httpprincess/authorizator:latest
   ports:
-   - 5000
+   - "5000:5000"
 updater:
   image: httpprincess/store-updater:master
   links:

@@ -4,6 +4,9 @@ from queue_managers.rabbit import BlockingPikaManager
 
 
 config = get_configuration('messaging')
+if config is None:
+    config = {'host': 'localhost', 'port': 5672}
+
 manager = BlockingPikaManager(host=config['host'], port=int(config['port']))
 
 

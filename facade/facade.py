@@ -68,7 +68,7 @@ class Facade(object):
         return uuid.uuid1().hex
 
     @staticmethod
-    def _prepare_instance(status, instance_type, environment):
+    def _prepare_instance(status, instance_type, environment=None):
         instance = dict()
         instance['id'] = Facade._generate_id()
         instance['status'] = status

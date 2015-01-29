@@ -1,4 +1,3 @@
-from stores.ming_store import MingStore
 from ming import create_datastore
 from stores.mongo_store import MongoStore
 

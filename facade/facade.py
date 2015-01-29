@@ -1,14 +1,15 @@
 import uuid
 from time import time
-from queue_managers import send_message
+# from queue_managers import self.send
 import logging
 
 
 class Facade(object):
-    def __init__(self, authorization, type_store, instance_store):
+    def __init__(self, authorization, type_store, instance_store, send_method):
         self.authorization = authorization
         self._types = type_store
         self._instances = instance_store
+        self.send = send_method
 
     def get_types(self):
         return self._types.get_all()
@@ -26,8 +27,8 @@ class Facade(object):
         # return value ignored?
         self.authorization.make_owner(uid, instance['id'])
         # self._instances.update(instance['id'], instance.copy())
-        send_message(instance_type, 'create_instance', instance)
-        send_message('info', 'instance_info', {'instance': instance})
+        self.send(instance_type, 'create_instance', instance)
+        self.send('info', 'instance_info', {'instance': instance})
         return instance
 
     def delete_instance(self, instance_id, uid):
@@ -38,9 +39,9 @@ class Facade(object):
             return False
         instance = self._instances.get(instance_id)
         # this will not work properly as we don't use broadcast
-        send_message(instance['type'], 'delete_instance', instance)
+        self.send(instance['type'], 'delete_instance', instance)
         instance['status'] = 'deleted'
-        send_message('info', 'instance_info', {'instance': instance})
+        self.send('info', 'instance_info', {'instance': instance})
         # self._instances.remove(instance_id)
         return self.authorization.revoke_ownership(user_id=uid,
                                                    instance_id=instance_id)

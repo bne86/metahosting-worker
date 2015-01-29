@@ -7,17 +7,19 @@ config = get_configuration('messaging')
 if config is None:
     config = {'host': 'localhost', 'port': 5672}
 
-manager = BlockingPikaManager(host=config['host'], port=int(config['port']))
+
+def get_manager():
+    return BlockingPikaManager(host=config['host'], port=int(config['port']))
 
 
 def send_message(routing_key, subject, message):
     msg = copy.copy(message)
     msg['subject'] = subject
-    manager.publish(routing_key, msg)
+    get_manager().publish(routing_key, msg)
 
 
 def subscribe(routing_key, callback):
-    manager.subscribe(routing_key, callback)
+    get_manager().subscribe(routing_key, callback)
 
 
 def get_message_subject(message):

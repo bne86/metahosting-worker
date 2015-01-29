@@ -1,6 +1,6 @@
 from copy import copy
 import unittest
-from facade import Facade
+from facade.facade import Facade
 from autho import RemoteAuthorizer
 from mock import Mock
 from stores.dict_store import Store
@@ -11,9 +11,15 @@ class FacadeTest(unittest.TestCase):
         self.author = RemoteAuthorizer('', '', '')
         self.instance_store = Store()
         self.type_store = Store()
+
+        def send(routing_key, subject, message):
+            pass
+
         self.facade = Facade(authorization=self.author,
                              instance_store=self.instance_store,
-                             type_store=self.type_store)
+                             type_store=self.type_store,
+                             send_method=send)
+
         self.service_name2 = 'service1'
         self.service_name1 = 'eXistNeo'
         self.non_existing_type = 'mAtriX'
@@ -191,7 +197,7 @@ class FacadeTest(unittest.TestCase):
         self.assertTrue(r)
 
     def test_outdated_autho(self):
-        #authorization service returns some non-existing ids:
+        # authorization service returns some non-existing ids:
         self.author.get_user_instances = Mock(return_value={'1', '2'})
         v = self.facade.get_all_instances(self.user_id)
         self.assertIsNotNone(v)

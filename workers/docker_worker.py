@@ -1,5 +1,6 @@
 from docker.client import Client
 from docker.tls import TLSConfig
+import docker.errors
 import logging
 from workers.worker import Worker
 
@@ -43,33 +44,34 @@ class DockerWorker(Worker):
     @Worker.callback('create_instance')
     def create_instance(self, message):
         instance = message.copy()
-        logging.debug('Creating instance (id=%s, environment=%s)',
-                      instance['id'],
-                      self.build_parameters)
-        container = self.docker.create_container(
-            self.worker_info['image'],
-            environment=self.build_parameters)
-        instance['status'] = 'creating'
+        environment = self._create_container_environment(instance)
+        logging.debug('Creating instance (id=%s)', instance['id'])
+        container = self.docker.create_container(self.worker_info['image'],
+                                                 environment=environment)
         self.docker.start(container, publish_all_ports=True)
-        self.instances.add_local_instance(instance['id'],
-                                          {'container-id': container['Id'],
-                                           'status': 'creating'})
-        self.instances.update_instance_status(instance['id'], instance)
+        instance['status'] = 'starting'
+        instance['local'] = container
+        instance['environment'] = environment
+        self.instances.set_instance(instance['id'], instance)
+        self.instances.publish_instance(instance['id'])
 
     @Worker.callback('delete_instance')
     def delete_instance(self, message):
         instance = message.copy()
         logging.debug('Deleting instance (id: %s)', instance['id'])
         try:
-            instance_id, information = self.instances.get_local_instance(
-                instance['id'])
+            instance_local = self.instances.get_instance(instance['id'])
         except TypeError as err:
-            logging.error(
-                'Instance not in local store, '
-                'therefore not deleting it' + err.message)
+            logging.error('Instance not in local store, '
+                          'therefore not deleting it' + err.message)
             return
-        container_id = information['container-id']
-        container = self.docker.inspect_container({'Id': container_id})
+        container_id = instance_local['local']['Id']
+        try:
+            container = self.docker.inspect_container({'Id': container_id})
+        except docker.errors.APIError as error:
+            logging.error('Container %s for instance %s not available, not '
+                          'stopping it', container_id, instance['id'], error)
+            return
         if not container:
             logging.debug(
                 'Container %s for instance %s not available, not stopping it',
@@ -77,8 +79,8 @@ class DockerWorker(Worker):
             return
         self.docker.stop(container)
         # update local store
-        information['status'] = 'deleted'
-        self.instances.add_local_instance(instance_id, information)
+        instance_local['status'] = 'deleted'
+        self.instances.set_instance(instance['id'], instance_local)
         # update global store
-        instance['status'] = 'deleting'
-        self.instances.update_instance_status(instance['id'], instance)
+        self.instances.publish_instance(instance['id'],
+                                        ['local', 'environment'])

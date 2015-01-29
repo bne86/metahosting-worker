@@ -17,13 +17,14 @@ class Facade(object):
     def add_type(self, name, description):
         self._types.update(name, description)
 
-    def create_instance(self, instance_type, uid):
+    def create_instance(self, instance_type, uid, environment=None):
         logging.debug('Creating instance of %s', instance_type)
         if instance_type not in self.get_types():
             return None
 
         instance = self._prepare_instance(status='starting',
-                                          instance_type=instance_type)
+                                          instance_type=instance_type,
+                                          environment=environment)
         # return value ignored?
         self.authorization.make_owner(uid, instance['id'])
         # self._instances.update(instance['id'], instance.copy())
@@ -40,8 +41,6 @@ class Facade(object):
         instance = self._instances.get(instance_id)
         # this will not work properly as we don't use broadcast
         self.send(instance['type'], 'delete_instance', instance)
-        instance['status'] = 'deleted'
-        self.send('info', 'instance_info', {'instance': instance})
         # self._instances.remove(instance_id)
         return self.authorization.revoke_ownership(user_id=uid,
                                                    instance_id=instance_id)
@@ -69,10 +68,13 @@ class Facade(object):
         return uuid.uuid1().hex
 
     @staticmethod
-    def _prepare_instance(status, instance_type):
+    def _prepare_instance(status, instance_type, environment):
         instance = dict()
         instance['id'] = Facade._generate_id()
         instance['status'] = status
         instance['type'] = instance_type
         instance['ts'] = time()
+        if environment:
+            instance['environment'] = environment
+
         return instance

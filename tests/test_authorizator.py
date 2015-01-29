@@ -1,7 +1,8 @@
 import unittest
-from autho import RemoteAuthorizer
+from autho import RemoteAuthorizer, HOST, PORT, get_authorizer
 from httmock import HTTMock, urlmatch
 import logging
+import os
 
 logging.basicConfig(format='[%(filename)s] %(asctime)s %(message)s',
                     datefmt='%m/%d/%Y %I:%M:%S %p',
@@ -17,6 +18,29 @@ class AuthorizatorTest(unittest.TestCase):
 
     def tearDown(self):
         pass
+
+    def test_getter(self):
+        host, port = None, None
+        if HOST in os.environ:
+            host = os.environ.pop(HOST)
+        if PORT in os.environ:
+            port = os.environ.pop(PORT)
+
+        autho = get_authorizer()
+        self.assertIsNone(autho)
+
+        os.environ[HOST] = 'localhost'
+        os.environ[PORT] = '90210'
+
+        autho = get_authorizer()
+        self.assertIsNotNone(autho)
+        self.assertTrue('localhost' in autho._url)
+        self.assertTrue(str(90210) in autho._url)
+
+        if host:
+            os.environ[HOST] = host
+        if port:
+            os.environ[PORT] = port
 
     def test_is_user_instance(self):
         with HTTMock(self.get_mock_for('/%s/resources/%s' % (1, 1), 200)):

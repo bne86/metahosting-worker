@@ -12,3 +12,4 @@ def get_authorizer():
         return RemoteAuthorizer(url=url, user='service2', password='simple')
     print 'set environment variables:%s %s to use remote authorizer' % \
           (HOST, PORT)
+    return None

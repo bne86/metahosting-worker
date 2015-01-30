@@ -6,15 +6,15 @@ from workers.worker import Worker
 
 
 class DockerWorker(Worker):
-    def __init__(self, config, local_instances):
+    def __init__(self, config, instances):
         """
         Call super-class constructor for common configuration items and
         then do the docker-specific setup
         :param config: dict containing the configuration
-        :param local_instances: storage backend for worker-local instances
+        :param instances: storage backend for worker-local instances
         :return: -
         """
-        super(DockerWorker, self).__init__(config, local_instances)
+        super(DockerWorker, self).__init__(config, instances)
         logging.debug('Initialize docker worker')
 
         self.worker_info['image'] = self.config['worker']['image']

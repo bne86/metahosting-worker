@@ -4,24 +4,24 @@ import time
 from workers.worker import Worker
 
 
-class ReducedWorker(Worker):
-    def __init__(self, config, local_instances):
+class VirtualWorker(Worker):
+    def __init__(self, config, instances):
         """
         Call super-class constructor for common configuration items and
         then do the docker-specific setup
         :param config: dict containing the configuration
-        :param local_instances: storage backend for worker-local instances
+        :param instances: storage backend for worker-local instances
         :return: -
         """
         logging.debug('Initialize reduced worker')
-        super(ReducedWorker, self).__init__(config, local_instances)
+        super(VirtualWorker, self).__init__(config, instances)
 
     @Worker.callback('create_instance')
     def create_instance(self, message):
         instance = message.copy()
         logging.debug('Creating instance (id=%s)', instance['id'])
         time.sleep(5)
-        instance['status'] = 'running'
+        instance['status'] = 'starting'
         self.instances.set_instance(instance['id'], instance)
         self.instances.publish_instance(instance['id'], instance)
 

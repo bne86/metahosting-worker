@@ -11,11 +11,11 @@ class Worker(object):
     __metaclass__ = ABCMeta
     callbacks = dict()
 
-    def __init__(self, config, local_instances):
+    def __init__(self, config, instances):
         logging.debug('Initialize general worker')
 
         self.config = config
-        self.instances = local_instances
+        self.instances = instances
         self.worker_info = dict()
         self.worker_info['name'] = config['worker']['name']
         self.worker_info['description'] = config['worker']['description']
@@ -26,10 +26,12 @@ class Worker(object):
                     = self.config['configurable_env'][item]
 
     def start(self):
+        self.worker_info['available'] = True
         subscribe(self.worker_info['name'], self.dispatch)
         start_publishing_type(self.worker_info, send_message)
 
     def stop(self):
+        self.worker_info['available'] = False
         stop_publishing_type(self.worker_info)
 
     @staticmethod

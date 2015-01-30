@@ -8,8 +8,9 @@ if config is None:
     config = {'host': 'localhost', 'port': 5672}
 
 
-def get_manager():
-    return BlockingPikaManager(host=config['host'], port=int(config['port']))
+def get_manager(queue=None):
+    return BlockingPikaManager(host=config['host'], port=int(config['port']),
+                               queue=queue)
 
 
 def send_message(routing_key, subject, message):
@@ -19,7 +20,7 @@ def send_message(routing_key, subject, message):
 
 
 def subscribe(routing_key, callback):
-    get_manager().subscribe(routing_key, callback)
+    get_manager(routing_key).subscribe(routing_key, callback)
 
 
 def get_message_subject(message):

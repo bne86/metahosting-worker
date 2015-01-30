@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="metahosting",
+    name="metahosting-worker",
     version="0.0.1",
     classifiers=[
         'Development Status :: 3 - Alpha',

@@ -7,24 +7,19 @@ db:
   image: mongo:latest
   ports:
    - "27017:27017"
-autho:
-  image: httpprincess/authorizator:latest
-  ports:
-   - "5000:5000"
 updater:
   image: httpprincess/store-updater:master
-#  image: updater2
   links:
     - db
     - messaging
-#worker:
-#  image: reduced_worker:latest
-#  links:
-#    - messaging
+worker:
+  image: reduced_worker:latest
+  links:
+    - messaging
+    -db
 #  command: /app/start_reduced_worker.py
 facade:
    build: .
    links:
     - db
-    - autho
     - messaging

@@ -56,7 +56,4 @@ target/
 # PyCharm
 .idea/
 
-# scripts
-deploy_worker.sh
-
 worker-config-local.ini

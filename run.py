@@ -51,7 +51,7 @@ def run():
         config.readfp(open(args.config))
     else:
         config = ConfigParser.SafeConfigParser()
-        config.readfp(open('worker-config.ini'))
+        config.readfp(open('config.ini'))
     config = _get_cfg_as_dict(config)
 
     instances = LocalInstanceManagement(config)
@@ -59,9 +59,6 @@ def run():
     worker = worker_class(config, instances)
 
     worker.start()
-    raw_input('Press any key to stop...')
-    worker.stop()
-
 
 if __name__ == "__main__":
     run()

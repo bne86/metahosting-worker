@@ -1,25 +1,4 @@
-messaging:
-  image: dockerfile/rabbitmq:latest
-  ports:
-   - "5672:5672"
-   - "15672:15672"
-db:
-  image: mongo:latest
-  ports:
-   - "27017:27017"
-updater:
-  image: httpprincess/store-updater:master
-  links:
-    - db
-    - messaging
+# the wollowing code expects that messaging and mongo are up and running.
 worker:
-  image: reduced_worker:latest
-  links:
-    - messaging
-    -db
-#  command: /app/start_reduced_worker.py
-facade:
-   build: .
-   links:
-    - db
-    - messaging
+  build: .
+  command: /app/run.py

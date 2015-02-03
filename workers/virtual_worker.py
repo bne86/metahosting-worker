@@ -19,18 +19,19 @@ class VirtualWorker(Worker):
     @Worker.callback('create_instance')
     def create_instance(self, message):
         instance = message.copy()
-        logging.debug('Creating instance (id=%s)', instance['id'])
+        logging.error('Creating instance (id=%s)', instance)
         time.sleep(5)
         instance['status'] = 'starting'
         self.instances.set_instance(instance['id'], instance)
-        self.instances.publish_instance(instance['id'], instance)
+        self.instances.publish_instance(instance['id'])
 
     @Worker.callback('delete_instance')
     def delete_instance(self, message):
-        instance_id = message['id']
-        logging.debug('Deleting instance id: %s', instance_id)
-        instance = self.instances.get_instance(instance_id)
+        instance = message.copy()
+        logging.error('Deleting instance id: %s', instance['id'])
+        instance = self.instances.get_instance(instance['id'])
         if instance is None:
             return
         instance['status'] = 'deleted'
-        self.instances.publish_instance(instance_id, instance)
+        instance = self.instances.set_instance(instance['id'], instance)
+        self.instances.publish_instance(instance['id'])

@@ -39,21 +39,15 @@ class LocalInstanceManagement:
         instance['ts'] = time.time()
         self._instances.update(instance_id, instance)
 
-    def publish_instance(self, instance_id, filter_fields=['local']):
+    def publish_instance(self, instance_id):
         """
         Send information of the corresponding instance to the messaging system
         Do not send 'local' tagged information from the local storage backend
 
         :param instance_id: id of the instance that we publish information for
-        :param filter_fields: array of dict keys that we do not want to
         publish, default = local
         :return: -
         """
         instance = self.get_instance(instance_id)
         if instance is not None:
-            for item in filter_fields:
-                try:
-                    instance.pop(item)
-                except KeyError as err:
-                    logging.error('Item %s not removed', item, err)
             send_message('info', 'instance_info', {'instance': instance})

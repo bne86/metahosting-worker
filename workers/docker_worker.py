@@ -82,5 +82,4 @@ class DockerWorker(Worker):
         instance_local['status'] = 'deleted'
         self.instances.set_instance(instance['id'], instance_local)
         # update global store
-        self.instances.publish_instance(instance['id'],
-                                        ['local', 'environment'])
+        self.instances.publish_instance(instance['id'])

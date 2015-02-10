@@ -13,13 +13,12 @@ def get_jittered_interval(interval):
 class Worker(object):
     __metaclass__ = ABCMeta
     callbacks = dict()
+    TYPE_PUBLISHING_INTERVAL = 30
 
     def __init__(self, config, instance_manager, send_method):
-        self.TYPE_PUBLISHING_INTERVAL = 30
         logging.debug('Worker initialization')
 
         self.send = send_method
-
         self.config = config
         self.instances = instance_manager
         self.worker_info = dict()

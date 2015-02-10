@@ -6,6 +6,12 @@ import threading
 from queue_managers import get_message_subject, subscribe
 
 
+def get_random_key(length=16):
+    return ''.join(
+        random.SystemRandom().choice(string.ascii_letters + string.digits)
+        for _ in range(length))
+
+
 def get_jittered_interval(interval):
     return interval + random.random() * interval * 0.3
 
@@ -95,12 +101,7 @@ class Worker(object):
                 environment.append(key + '=' + injected_parameters[key])
             else:
                 if local_parameters[key] == '':
-                    environment.append(key + '=' + ''.join(
-                        random.SystemRandom().choice(
-                            string.ascii_lowercase +
-                            string.ascii_uppercase +
-                            string.digits)
-                        for _ in range(16)))
+                    environment.append(key + '=' + get_random_key())
                 else:
                     environment.append(key + '=' + local_parameters[key])
         logging.debug('Current environment for VM: %s', environment)

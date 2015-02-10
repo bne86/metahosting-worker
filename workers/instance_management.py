@@ -38,8 +38,7 @@ class LocalInstanceManager:
         self._instances = instance_store
         self.send = send_method
 
-        logging.debug('Instances stored: %r',
-                      self.get_instances())
+        logging.debug('Instances stored: %r', self.get_instances())
 
     def get_instance(self, instance_id):
         return self._instances.get(instance_id)

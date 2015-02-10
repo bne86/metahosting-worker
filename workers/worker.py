@@ -1,38 +1,57 @@
 from abc import ABCMeta
 import logging
-from queue_managers import get_message_subject, send_message, subscribe
 import random
 import string
-from workers.common.types_management import start_publishing_type, \
-    stop_publishing_type
+import threading
+from queue_managers import get_message_subject, subscribe
+
+
+def get_jittered_interval(interval):
+    return interval + random.random() * interval * 0.3
 
 
 class Worker(object):
     __metaclass__ = ABCMeta
     callbacks = dict()
 
-    def __init__(self, config, instances):
-        logging.debug('Initialize general worker')
+    def __init__(self, config, instance_manager, send_method):
+        self.TYPE_PUBLISHING_INTERVAL = 30
+        logging.debug('Worker initialization')
+
+        self.send = send_method
 
         self.config = config
-        self.instances = instances
+        self.instances = instance_manager
         self.worker_info = dict()
         self.worker_info['name'] = config['worker']['name']
         self.worker_info['description'] = config['worker']['description']
+
         self.worker_info['environment'] = dict()
         if 'configurable_env' in self.config:
             for item in self.config['configurable_env'].keys():
                 self.worker_info['environment'][item.upper()] \
                     = self.config['configurable_env'][item]
+        self.type_publishing_timer = None
 
     def start(self):
         self.worker_info['available'] = True
         subscribe(self.worker_info['name'], self.dispatch)
-        start_publishing_type(self.worker_info, send_message)
+        self.publish_type()
+        self.schedule_type_publication()
 
     def stop(self):
         self.worker_info['available'] = False
-        stop_publishing_type(self.worker_info)
+        if self.type_publishing_timer:
+            self.type_publishing_timer.cancel()
+
+    def schedule_type_publication(self):
+        new_time = get_jittered_interval(self.TYPE_PUBLISHING_INTERVAL)
+        self.type_publishing_timer = threading.Timer(new_time,
+                                                     self.publish_type)
+        self.type_publishing_timer.start()
+
+    def publish_type(self):
+        self.send('info', 'instance_type', {'type': self.worker_info})
 
     @staticmethod
     def callback(subject):

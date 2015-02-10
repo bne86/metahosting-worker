@@ -1,9 +1,5 @@
-from time import sleep
 from queue_managers.rabbit import BlockingPikaManager
 from queue_managers import send_message, subscribe, get_message_subject
-
-__author__ = 'jj'
-
 import unittest
 
 

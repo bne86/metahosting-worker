@@ -1,38 +1,69 @@
 from abc import ABCMeta
 import logging
-from queue_managers import get_message_subject, send_message, subscribe
 import random
 import string
-from workers.common.types_management import start_publishing_type, \
-    stop_publishing_type
+import threading
+from time import sleep
+from queue_managers import get_message_subject, subscribe
+
+
+def get_random_key(length=16):
+    return ''.join(
+        random.SystemRandom().choice(string.ascii_letters + string.digits)
+        for _ in range(length))
+
+
+def get_jittered_interval(interval):
+    return interval + random.random() * interval * 0.3
 
 
 class Worker(object):
     __metaclass__ = ABCMeta
     callbacks = dict()
+    TYPE_PUBLISHING_INTERVAL = 30
 
-    def __init__(self, config, instances):
-        logging.debug('Initialize general worker')
+    def __init__(self, config, instance_manager, send_method):
+        logging.debug('Worker initialization')
 
+        self.send = send_method
         self.config = config
-        self.instances = instances
+        self.instances = instance_manager
         self.worker_info = dict()
         self.worker_info['name'] = config['worker']['name']
         self.worker_info['description'] = config['worker']['description']
+
         self.worker_info['environment'] = dict()
         if 'configurable_env' in self.config:
             for item in self.config['configurable_env'].keys():
                 self.worker_info['environment'][item.upper()] \
                     = self.config['configurable_env'][item]
+        self.type_publishing_thread = None
 
     def start(self):
         self.worker_info['available'] = True
+        self.type_publishing_thread = threading.Thread(
+            target=self.schedule_type_publication)
+        self.type_publishing_thread.start()
+        sleep(5)
         subscribe(self.worker_info['name'], self.dispatch)
-        start_publishing_type(self.worker_info, send_message)
 
     def stop(self):
         self.worker_info['available'] = False
-        stop_publishing_type(self.worker_info)
+        if self.type_publishing_thread:
+            self.type_publishing_thread.cancel()
+
+    def schedule_type_publication(self):
+        new_time = get_jittered_interval(self.TYPE_PUBLISHING_INTERVAL)
+        while True:
+            logging.info('Publishing type: %s', self.worker_info['name'])
+            self.publish_type()
+            sleep(new_time)
+        #self.type_publishing_timer = threading.Timer(new_time,
+        #                                             self.publish_type)
+        #self.type_publishing_timer.start()
+
+    def publish_type(self):
+        self.send('info', 'instance_type', {'type': self.worker_info})
 
     @staticmethod
     def callback(subject):
@@ -77,12 +108,7 @@ class Worker(object):
                 environment.append(key + '=' + injected_parameters[key])
             else:
                 if local_parameters[key] == '':
-                    environment.append(key + '=' + ''.join(
-                        random.SystemRandom().choice(
-                            string.ascii_lowercase +
-                            string.ascii_uppercase +
-                            string.digits)
-                        for _ in range(16)))
+                    environment.append(key + '=' + get_random_key())
                 else:
                     environment.append(key + '=' + local_parameters[key])
         logging.debug('Current environment for VM: %s', environment)

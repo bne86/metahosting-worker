@@ -4,7 +4,9 @@ import argparse
 import ConfigParser
 import importlib
 import logging
-from workers.common.instance_management import LocalInstanceManagement
+from workers.instance_management import LocalInstanceManager, \
+    get_instance_store
+from queue_managers import send_message
 
 
 def _get_cfg_as_dict(config):
@@ -54,9 +56,11 @@ def run():
         config.readfp(open('config.ini'))
     config = _get_cfg_as_dict(config)
 
-    instances = LocalInstanceManagement(config)
+    instance_store = get_instance_store(config=config)
+    instance_manager = LocalInstanceManager(instance_store=instance_store,
+                                            send_method=send_message)
     worker_class = _get_backend_class(config)
-    worker = worker_class(config, instances)
+    worker = worker_class(config, instance_manager, send_message)
 
     worker.start()
 

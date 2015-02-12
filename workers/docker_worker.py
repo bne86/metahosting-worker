@@ -2,58 +2,42 @@ from docker.client import Client
 from docker.tls import TLSConfig
 import docker.errors
 import logging
+from workers.instance_management import InstanceStatus
 from workers.worker import Worker
 
 
 class DockerWorker(Worker):
-    def __init__(self, config, instances):
+    def __init__(self, config, instance_manager, send_method):
         """
         Call super-class constructor for common configuration items and
         then do the docker-specific setup
         :param config: dict containing the configuration
-        :param instances: storage backend for worker-local instances
+        :param instance_manager: local instance manger
+        :param send_method: messaging communication method
         :return: -
         """
-        super(DockerWorker, self).__init__(config, instances)
-        logging.debug('Initialize docker worker')
+        super(DockerWorker, self).__init__(config,
+                                           instance_manager,
+                                           send_method)
+        logging.debug('DockerWorker initialization')
+        self.docker = Client(base_url=self.config['worker']['base_url'],
+                             version=self.config['worker']['client_version'],
+                             tls=DockerWorker._get_tls(config))
+        self._initialize_image()
 
-        self.worker_info['image'] = self.config['worker']['image']
-        if self.config['worker']['tls_verify'] == 'True':
-            verify = True
-        else:
-            verify = False
-        keys = self.config['worker'].keys()
-        # docker is remote or SSL used locally:
-        if 'client_cert' in keys and 'client_key' in keys \
-                and 'tls_verify' in keys:
-            tls_config = TLSConfig(client_cert=
-                                   (self.config['worker']['client_cert'],
-                                    self.config['worker']['client_key'],),
-                                   verify=verify)
-            self.docker = Client(base_url=self.config['worker']['base_url'],
-                                 version=self.config['worker'][
-                                     'client_version'],
-                                 tls=tls_config)
-        else:
-            self.docker = Client(base_url=self.config['worker']['base_url'],
-                                 version=self.config['worker'][
-                                     'client_version'])
-        # load image if its not already available
-        self.docker.import_image(image=self.worker_info['image'])
 
     @Worker.callback('create_instance')
     def create_instance(self, message):
         instance = message.copy()
+        logging.debug('Creating instance id: %s', instance['id'])
         environment = self._create_container_environment(instance)
-        logging.debug('Creating instance (id=%s)', instance['id'])
         container = self.docker.create_container(self.worker_info['image'],
                                                  environment=environment)
         self.docker.start(container, publish_all_ports=True)
-        instance['status'] = 'starting'
         instance['local'] = container
         instance['environment'] = environment
-        self.instances.set_instance(instance['id'], instance)
-        self.instances.publish_instance(instance['id'])
+        self.instances.update_instance_status(instance=instance,
+                                              status=InstanceStatus.STARTING)
 
     @Worker.callback('delete_instance')
     def delete_instance(self, message):
@@ -72,14 +56,36 @@ class DockerWorker(Worker):
             logging.error('Container %s for instance %s not available, not '
                           'stopping it', container_id, instance['id'], error)
             return
-        if not container:
-            logging.debug(
-                'Container %s for instance %s not available, not stopping it',
-                container_id, instance['id'])
-            return
         self.docker.stop(container)
-        # update local store
-        instance_local['status'] = 'deleted'
-        self.instances.set_instance(instance['id'], instance_local)
-        # update global store
-        self.instances.publish_instance(instance['id'])
+        self.instances.update_instance_status(instance=instance_local,
+                                              status=InstanceStatus.DELETED,
+                                              publish=True)
+
+    @staticmethod
+    def _get_tls(config):
+        if config['worker']['tls_verify'] == 'True':
+            verify = True
+        else:
+            verify = False
+
+        keys = config['worker'].keys()
+        if 'client_cert' in keys and 'client_key' in keys \
+                and 'tls_verify' in keys:
+            return TLSConfig(client_cert=
+                             (config['worker']['client_cert'],
+                              config['worker']['client_key'],),
+                             verify=verify)
+        return False
+
+    def _initialize_image(self):
+        self.worker_info['image'] = self.config['worker']['image']
+        logging.debug('Importing image %s', self.worker_info['image'])
+        self.docker.import_image(image=self.worker_info['image'])
+
+    def _get_container(self, container_id):
+        try:
+            return self.docker.inspect_container({'Id': container_id})
+        except docker.errors.APIError as error:
+            logging.error('Unable to retrieve container %s (%s)', container_id,
+                          error)
+            return False

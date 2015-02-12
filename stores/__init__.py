@@ -1,6 +1,4 @@
 from config_manager import get_configuration
-from stores.ming_store import MingStore
-from stores.dict_store import Store
 from stores.mongo_store import MongoStore
 
 

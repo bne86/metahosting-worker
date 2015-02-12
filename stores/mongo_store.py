@@ -5,7 +5,7 @@ import logging
 
 class MongoStore(AbstractKVStore):
     def initialize_collection(self):
-        logging.warning('Use MingStore to connect to mongodb')
+        logging.debug('Use MongoClient to connect to mongodb')
         client = MongoClient(self.get_property('url'))
         return client[self.get_property('database')][self.get_property(
             'collection')]

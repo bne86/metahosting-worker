@@ -1,4 +1,7 @@
 # the wollowing code expects that messaging and mongo are up and running.
-worker:
+worker1:
   build: .
-  command: /app/run.py
+  command: /app/run.py --config config.ini
+worker2:
+  build: .
+  command: /app/run.py --config config1.ini

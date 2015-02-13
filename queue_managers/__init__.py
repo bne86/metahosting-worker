@@ -4,13 +4,18 @@ from queue_managers.rabbit import BlockingPikaManager
 
 
 config = get_configuration('messaging')
+managers = dict()
+
 if config is None:
     config = {'host': 'localhost', 'port': 5672}
 
 
 def get_manager(queue=None):
-    return BlockingPikaManager(host=config['host'], port=int(config['port']),
-                               queue=queue)
+    if queue not in managers:
+        managers[queue] = BlockingPikaManager(host=config['host'],
+                                              port=int(config['port']),
+                                              queue=queue)
+    return managers[queue]
 
 
 def send_message(routing_key, subject, message):

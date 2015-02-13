@@ -29,7 +29,7 @@ class DockerWorker(Worker):
     @Worker.callback('create_instance')
     def create_instance(self, message):
         instance = message.copy()
-        logging.debug('Creating instance id: %s', instance['id'])
+        logging.info('Creating instance id: %s', instance['id'])
         environment = self._create_container_environment(instance)
         container = self.docker.create_container(self.worker_info['image'],
                                                  environment=environment)
@@ -42,7 +42,7 @@ class DockerWorker(Worker):
     @Worker.callback('delete_instance')
     def delete_instance(self, message):
         instance = message.copy()
-        logging.debug('Deleting instance (id: %s)', instance['id'])
+        logging.info('Deleting instance (id: %s)', instance['id'])
         try:
             instance_local = self.instances.get_instance(instance['id'])
         except TypeError as err:
@@ -60,6 +60,7 @@ class DockerWorker(Worker):
         self.instances.update_instance_status(instance=instance_local,
                                               status=InstanceStatus.DELETED,
                                               publish=True)
+
 
     @staticmethod
     def _get_tls(config):

@@ -19,6 +19,7 @@ def get_instance_store(config):
 class InstanceStatus:
     STARTING = 'starting'
     DELETED = 'deleted'
+    ACTIVE = 'active'
 
     def __init__(self):
         pass

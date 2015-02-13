@@ -13,14 +13,10 @@ def get_random_key(length=16):
         for _ in range(length))
 
 
-def get_jittered_interval(interval):
-    return interval + random.random() * interval * 0.3
-
-
 class Worker(object):
     __metaclass__ = ABCMeta
     callbacks = dict()
-    TYPE_PUBLISHING_INTERVAL = 30
+    TYPE_PUBLISHING_INTERVAL = 15
 
     def __init__(self, config, instance_manager, send_method):
         logging.debug('Worker initialization')
@@ -37,30 +33,41 @@ class Worker(object):
             for item in self.config['configurable_env'].keys():
                 self.worker_info['environment'][item.upper()] \
                     = self.config['configurable_env'][item]
-        self.type_publishing_thread = None
+        self.publishing_thread = None
+        self.subscribing_thread = None
 
     def start(self):
+        """
+        start thread that is sending all information to the queue and at the
+        same time subscribe for create_instance messages on own queue
+        :return:
+        """
         self.worker_info['available'] = True
-        self.type_publishing_thread = threading.Thread(
-            target=self.schedule_type_publication)
-        self.type_publishing_thread.start()
+        self.publishing_thread = threading.Thread(
+            target=self._publish_information)
+        self.publishing_thread.start()
         sleep(5)
-        subscribe(self.worker_info['name'], self.dispatch)
+        subscribe(self.worker_info['name'], self._dispatch)
 
-    def stop(self):
+    def stop(self, signal, stack):
+        """
+        try to catch a SIGTERM signal in main thread and stop, not working.
+        :param signal:
+        :param stack:
+        :return:
+        """
         self.worker_info['available'] = False
-        if self.type_publishing_thread:
-            self.type_publishing_thread.cancel()
+        self.publish_type()
+        if self.publishing_thread:
+            self.publishing_thread.cancel()
 
-    def schedule_type_publication(self):
-        new_time = get_jittered_interval(self.TYPE_PUBLISHING_INTERVAL)
+    def _publish_information(self):
         while True:
-            logging.info('Publishing type: %s', self.worker_info['name'])
+            logging.info('Publishing type and status updates: %s',
+                         self.worker_info['name'])
             self.publish_type()
-            sleep(new_time)
-        #self.type_publishing_timer = threading.Timer(new_time,
-        #                                             self.publish_type)
-        #self.type_publishing_timer.start()
+            self.publish_updates()
+            sleep(self.TYPE_PUBLISHING_INTERVAL)
 
     def publish_type(self):
         self.send('info', 'instance_type', {'type': self.worker_info})
@@ -75,7 +82,7 @@ class Worker(object):
 
         return decorator
 
-    def dispatch(self, message):
+    def _dispatch(self, message):
         subject = get_message_subject(message)
 
         if subject in self.callbacks:

@@ -4,6 +4,7 @@ import argparse
 import ConfigParser
 import importlib
 import logging
+import signal
 from workers.instance_management import LocalInstanceManager, \
     get_instance_store
 from queue_managers import send_message
@@ -45,9 +46,11 @@ def run():
                              "environment variables to use")
     parser.add_argument("--config", help="provide a config file")
     args = parser.parse_args()
+    logger = logging.getLogger()
     if args.debug:
-        logger = logging.getLogger()
         logger.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(logging.INFO)
     if args.config:
         config = ConfigParser.SafeConfigParser()
         config.readfp(open(args.config))
@@ -61,7 +64,9 @@ def run():
                                             send_method=send_message)
     worker_class = _get_backend_class(config)
     worker = worker_class(config, instance_manager, send_message)
-
+    # try to exit gracefully
+    signal.signal(signal.SIGTERM, worker.stop)
+    signal.signal(signal.SIGHUP, worker.stop)
     worker.start()
 
 if __name__ == "__main__":

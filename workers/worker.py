@@ -1,4 +1,4 @@
-from abc import ABCMeta
+from abc import ABCMeta, abstractmethod
 import logging
 import random
 import string
@@ -46,7 +46,6 @@ class Worker(object):
         self.publishing_thread = threading.Thread(
             target=self._publish_information)
         self.publishing_thread.start()
-        sleep(5)
         subscribe(self.worker_info['name'], self._dispatch)
 
     def stop(self, signal, stack):
@@ -120,3 +119,7 @@ class Worker(object):
                     environment.append(key + '=' + local_parameters[key])
         logging.debug('Current environment for VM: %s', environment)
         return environment
+
+    @abstractmethod
+    def publish_updates(self):
+        pass

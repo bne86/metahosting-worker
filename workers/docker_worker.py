@@ -25,7 +25,6 @@ class DockerWorker(Worker):
                              tls=DockerWorker._get_tls(config))
         self._initialize_image()
 
-
     @Worker.callback('create_instance')
     def create_instance(self, message):
         instance = message.copy()
@@ -61,17 +60,16 @@ class DockerWorker(Worker):
                                               status=InstanceStatus.DELETED,
                                               publish=True)
 
-
     @staticmethod
     def _get_tls(config):
-        if config['worker']['tls_verify'] == 'True':
-            verify = True
-        else:
-            verify = False
-
         keys = config['worker'].keys()
         if 'client_cert' in keys and 'client_key' in keys \
                 and 'tls_verify' in keys:
+            if config['worker']['tls_verify'] == 'True':
+                verify = True
+            else:
+                verify = False
+
             return TLSConfig(client_cert=
                              (config['worker']['client_cert'],
                               config['worker']['client_key'],),
@@ -90,3 +88,14 @@ class DockerWorker(Worker):
             logging.error('Unable to retrieve container %s (%s)', container_id,
                           error)
             return False
+
+    def publish_updates(self):
+        """
+        dummy instances always change state from STARTING to ACTIVE
+        :return:
+        """
+        instances = self.instances.get_instances()
+        for instance_name in instances.keys():
+            if instances[instance_name]['status'] == InstanceStatus.STARTING:
+                self.instances.update_instance_status(instances[instance_name],
+                                                      InstanceStatus.ACTIVE)

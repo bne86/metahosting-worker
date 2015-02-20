@@ -20,7 +20,7 @@ class DockerWorker(Worker):
                                            instance_manager,
                                            send_method)
         logging.debug('DockerWorker initialization')
-        self.docker = Client(base_url=None,
+        self.docker = Client(base_url=self.config['worker']['base_url'],
                              version=self.config['worker']['client_version'],
                              tls=DockerWorker._get_tls(config))
         self._initialize_image()
@@ -98,6 +98,9 @@ class DockerWorker(Worker):
                 logging.warning('Invalid instance in store: %s', instance_name)
                 continue
             container = self._get_container(instance['local']['Id'])
+	    if not container:
+                # we should probaly remove it from database?
+                continue
             is_running = self._is_running(container)
             logging.info('[%s] %s -- %s ', instance_name, instance[
                 'status'], is_running)

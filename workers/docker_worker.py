@@ -91,28 +91,30 @@ class DockerWorker(Worker):
 
     def publish_updates(self):
         """
-        dummy instances always change state from STARTING to ACTIVE
         :return:
         """
-        instances = self.instances.get_instances()
-        print instances
-        for instance_descriptor in instances.keys():
-            print instance_descriptor
-            container_id = instances[instance_descriptor]['local']['Id']
+        containers = self.instances.get_instances()
+        for container_descriptor in containers.keys():
+            container_id = containers[container_descriptor]['local']['Id']
             try:
                 container = self.docker.inspect_container(
                     {'Id': container_id})
             except docker.errors.APIError as error:
                 logging.error('Container not available, set to stopped')
-                self.instances.update_instance_status(instances
-                                                      [instance_descriptor],
+                self.instances.update_instance_status(containers
+                                                      [container_descriptor],
                                                       InstanceStatus.STOPPED)
                 return
+            if 'connection' not in containers[container_descriptor]['local']:
+                containers[container_descriptor]['connection'] = \
+                    container['NetworkSettings']['Ports']
+                self.instances.set_instance(container_descriptor,
+                                            containers[container_descriptor])
             if container['State']['Running']:
-                self.instances.update_instance_status(instances
-                                                      [instance_descriptor],
+                self.instances.update_instance_status(containers
+                                                      [container_descriptor],
                                                       InstanceStatus.RUNNING)
             else:
-                self.instances.update_instance_status(instances
-                                                      [instance_descriptor],
+                self.instances.update_instance_status(containers
+                                                      [container_descriptor],
                                                       InstanceStatus.STOPPED)

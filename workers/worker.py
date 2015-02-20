@@ -100,10 +100,10 @@ class Worker(object):
         :param message: dict containing the message gotten from the bus
         :return: list containing key=value pairs send to docker
         """
-        if 'environment' in message.keys():
-            injected_parameters = message['environment']
-        else:
-            injected_parameters = dict()
+        #if 'environment' in message.keys():
+        #    injected_parameters = message['environment']
+        #else:
+        injected_parameters = dict()
         if 'environment' in self.worker_info.keys():
             local_parameters = self.worker_info['environment']
         else:

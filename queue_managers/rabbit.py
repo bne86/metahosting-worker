@@ -1,29 +1,19 @@
 import pika
-# get yourself a running rabbitmq server with:
-# docker run -d -p 5672:5672 -p 15672:15672 dockerfile/rabbitmq
-
-# problems:
-# 1, when start_consuming is called no new queues can be defined (so we need a
-# predefined set of queues?)
-# 2. if there is no callback registered start_consume exists instantly, so
-# we start it after the first subscription
-# 3. how to stop the thread?
-# although it is not such a big problem with a daemon
-
 import logging
-import threading
 import json
 from retrying import retry
+import threading
 
 
 class BlockingPikaManager(object):
-    def __init__(self, host, port, queue=None):
+    def __init__(self, host, port, user='guest', password='guest', queue=None):
         logging.debug('Initializing...')
-        credentials = pika.PlainCredentials('guest', 'guest')
-        logging.warning('Using default credentials')
+        credentials = pika.PlainCredentials(user, password)
         self.parameters = \
-            pika.ConnectionParameters(host=host, port=port,
-                                      virtual_host='', credentials=credentials)
+            pika.ConnectionParameters(host=host,
+                                      port=port,
+                                      virtual_host='',
+                                      credentials=credentials)
         self.connection = self._get_connection()
 
         self.channel = self.connection.channel()
@@ -66,3 +56,7 @@ class BlockingPikaManager(object):
     def unsubscribe(self, routing_key, listener):
         # self.channel.basic_cancel(consumer_tag=listener.__name__)
         raise NotImplementedError
+
+    def disconnect(self):
+        if self.connection.is_open:
+            self.connection.close()

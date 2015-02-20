@@ -19,7 +19,8 @@ def get_instance_store(config):
 class InstanceStatus:
     STARTING = 'starting'
     DELETED = 'deleted'
-    ACTIVE = 'active'
+    RUNNING = 'running'
+    STOPPED = 'stopped'
 
     def __init__(self):
         pass
@@ -70,4 +71,3 @@ class LocalInstanceManager:
         instance = self.get_instance(instance_id)
         if instance is not None:
             self.send('info', 'instance_info', {'instance': instance})
-

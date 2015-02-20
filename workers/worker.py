@@ -46,7 +46,6 @@ class Worker(object):
         self.publishing_thread = threading.Thread(
             target=self._publish_information)
         self.publishing_thread.start()
-        sleep(5)
         subscribe(self.worker_info['name'], self._dispatch)
 
     def stop(self, signal, stack):

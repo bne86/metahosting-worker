@@ -110,8 +110,7 @@ class DockerWorker(Worker):
                                                       InstanceStatus.STOPPED)
                 return
 
-
-    # make static method sense at all in python?
+    # do static method make any sense at all in python?
     @staticmethod
     def _is_running(container):
         if 'State' not in container or 'Running' not in container['State']:

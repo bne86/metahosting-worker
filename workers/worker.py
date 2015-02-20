@@ -16,7 +16,7 @@ def get_random_key(length=16):
 class Worker(object):
     __metaclass__ = ABCMeta
     callbacks = dict()
-    TYPE_PUBLISHING_INTERVAL = 15
+    PUBLISHING_INTERVAL = 15
 
     def __init__(self, config, instance_manager, send_method):
         logging.debug('Worker initialization')
@@ -66,7 +66,7 @@ class Worker(object):
                          self.worker_info['name'])
             self.publish_type()
             self.publish_updates()
-            sleep(self.TYPE_PUBLISHING_INTERVAL)
+            sleep(self.PUBLISHING_INTERVAL)
 
     def publish_type(self):
         self.send('info', 'instance_type', {'type': self.worker_info})

@@ -61,12 +61,7 @@ class DockerWorker(Worker):
         self.docker.import_image(image=self.worker_info['image'])
 
     def _get_container(self, container_id):
-        try:
-            return self.docker.inspect_container({'Id': container_id})
-        except docker.errors.APIError as error:
-            logging.error('Unable to retrieve container %s (%s)', container_id,
-                          error)
-            return False
+        return self.docker.inspect_container({'Id': container_id})
 
     def _get_container_id(self, instance_id):
         try:
@@ -80,11 +75,11 @@ class DockerWorker(Worker):
         container = self._get_container(container_id=container_id)
         if not container:
             return False
-        return container['NetworkSettings']['Ports']
+        return self._get_connection_details_from_container(container)
 
     def publish_updates(self):
         """
-        dummy instances always change state from STARTING to ACTIVE
+        updates instance status to docker status.
         :return:
         """
         instances = self.instances.get_instances()
@@ -99,10 +94,14 @@ class DockerWorker(Worker):
                                                       InstanceStatus.STOPPED)
                 continue
             if DockerWorker._is_running(container):  # and status not running?
+                connection_details = \
+                    DockerWorker._get_connection_details_from_container(container)
+                instances[instance_id]['connection'] = connection_details
                 self.instances.update_instance_status(instances
                                                       [instance_id],
                                                       InstanceStatus.RUNNING)
             else:
+                instances[instance_id].pop('connection', None)
                 self.instances.update_instance_status(instances
                                                       [instance_id],
                                                       InstanceStatus.STOPPED)
@@ -128,3 +127,7 @@ class DockerWorker(Worker):
                               config['worker']['client_key'],),
                              verify=verify)
         return False
+
+    @staticmethod
+    def _get_connection_details_from_container(container):
+        return container['NetworkSettings']['Ports']

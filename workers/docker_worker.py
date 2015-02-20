@@ -95,7 +95,24 @@ class DockerWorker(Worker):
         :return:
         """
         instances = self.instances.get_instances()
-        for instance_name in instances.keys():
-            if instances[instance_name]['status'] == InstanceStatus.STARTING:
-                self.instances.update_instance_status(instances[instance_name],
-                                                      InstanceStatus.ACTIVE)
+        print instances
+        for instance_descriptor in instances.keys():
+            print instance_descriptor
+            container_id = instances[instance_descriptor]['local']['Id']
+            try:
+                container = self.docker.inspect_container(
+                    {'Id': container_id})
+            except docker.errors.APIError as error:
+                logging.error('Container not available, set to stopped')
+                self.instances.update_instance_status(instances
+                                                      [instance_descriptor],
+                                                      InstanceStatus.STOPPED)
+                return
+            if container['State']['Running']:
+                self.instances.update_instance_status(instances
+                                                      [instance_descriptor],
+                                                      InstanceStatus.RUNNING)
+            else:
+                self.instances.update_instance_status(instances
+                                                      [instance_descriptor],
+                                                      InstanceStatus.STOPPED)

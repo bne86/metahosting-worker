@@ -2,7 +2,7 @@ from docker.client import Client
 from docker.tls import TLSConfig
 import docker.errors
 import logging
-from workers.instance_management import InstanceStatus
+from workers.instance_management import INSTANCE_STATUS
 from workers.worker import Worker
 
 
@@ -29,7 +29,7 @@ class DockerWorker(Worker):
     def create_instance(self, message):
         instance = message.copy()
         logging.info('Creating instance id: %s', instance['id'])
-        environment = self._create_container_environment(instance)
+        environment = self._create_container_environment()
         container = self.docker.create_container(self.worker_info['image'],
                                                  environment=environment)
         self.docker.start(container, publish_all_ports=True)
@@ -37,7 +37,7 @@ class DockerWorker(Worker):
         instance['environment'] = environment
         instance['connection'] = self._get_connection_details(container['Id'])
         self.instances.update_instance_status(instance=instance,
-                                              status=InstanceStatus.STARTING)
+                                              status=INSTANCE_STATUS.STARTING)
 
     @Worker.callback('delete_instance')
     def delete_instance(self, message):
@@ -52,7 +52,7 @@ class DockerWorker(Worker):
         self.docker.stop(container)
         instance_local = self.instances.get_instance(instance['id'])
         self.instances.update_instance_status(instance=instance_local,
-                                              status=InstanceStatus.DELETED)
+                                              status=INSTANCE_STATUS.DELETED)
 
     def _initialize_image(self):
         self.worker_info['image'] = self.config['worker']['image']
@@ -89,11 +89,12 @@ class DockerWorker(Worker):
             try:
                 container = self._get_container(container_id)
             except docker.errors.APIError as error:
-                logging.error('Container not available, set to stopped')
+                logging.error('Container not available, set to stopped  %s',
+                              error)
                 instances[instance_id].pop('connection', None)
                 self.instances.update_instance_status(instances
                                                       [instance_id],
-                                                      InstanceStatus.STOPPED)
+                                                      INSTANCE_STATUS.STOPPED)
                 continue
 
             if DockerWorker._is_running(container):  # and status not running?
@@ -102,12 +103,12 @@ class DockerWorker(Worker):
                 instances[instance_id]['connection'] = connection_details
                 self.instances.update_instance_status(instances
                                                       [instance_id],
-                                                      InstanceStatus.RUNNING)
+                                                      INSTANCE_STATUS.RUNNING)
             else:
                 instances[instance_id].pop('connection', None)
                 self.instances.update_instance_status(instances
                                                       [instance_id],
-                                                      InstanceStatus.STOPPED)
+                                                      INSTANCE_STATUS.STOPPED)
                 return
 
     # do static method make any sense at all in python?

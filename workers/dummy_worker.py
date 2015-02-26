@@ -1,6 +1,6 @@
 import logging
 import time
-from workers.instance_management import InstanceStatus
+from workers.instance_management import INSTANCE_STATUS
 
 from workers.worker import Worker
 
@@ -25,7 +25,7 @@ class DummyWorker(Worker):
         logging.info('Creating instance id: %s', instance['id'])
         time.sleep(5)
         self.instances.update_instance_status(instance,
-                                              InstanceStatus.STARTING)
+                                              INSTANCE_STATUS.STARTING)
 
     @Worker.callback('delete_instance')
     def delete_instance(self, message):
@@ -35,15 +35,15 @@ class DummyWorker(Worker):
         if instance is None:
             return
         self.instances.update_instance_status(instance,
-                                              InstanceStatus.DELETED)
+                                              INSTANCE_STATUS.DELETED)
 
     def publish_updates(self):
         """
-        dummy instances always change state from STARTING to ACTIVE
+        dummy instances always change state from STARTING to RUNNING
         :return:
         """
         instances = self.instances.get_instances()
         for instance_name in instances.keys():
-            if instances[instance_name]['status'] == InstanceStatus.STARTING:
+            if instances[instance_name]['status'] == INSTANCE_STATUS.STARTING:
                 self.instances.update_instance_status(instances[instance_name],
-                                                      InstanceStatus.ACTIVE)
+                                                      INSTANCE_STATUS.RUNNING)

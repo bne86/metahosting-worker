@@ -48,7 +48,7 @@ class Worker(object):
         self.publishing_thread.start()
         subscribe(self.worker_info['name'], self._dispatch)
 
-    def stop(self, signal, stack):
+    def stop(self):
         """
         try to catch a SIGTERM signal in main thread and stop, not working.
         :param signal:
@@ -58,7 +58,7 @@ class Worker(object):
         self.worker_info['available'] = False
         self.publish_type()
         if self.publishing_thread:
-            self.publishing_thread.cancel()
+            self.publishing_thread.join()
 
     def _publish_information(self):
         while True:
@@ -90,14 +90,13 @@ class Worker(object):
         else:
             logging.error('No callback for %s found!', subject)
 
-    def _create_container_environment(self, message):
+    def _create_container_environment(self):
         """
         Merge the build_parameters configured for the worker and gotten from
         the facade.
         :rtype : list
         Policy: Only override worker-local parameters. If a parameter is empty,
         generate a value using lowercase, uppercase and digits.
-        :param message: dict containing the message gotten from the bus
         :return: list containing key=value pairs send to docker
         """
         injected_parameters = dict()

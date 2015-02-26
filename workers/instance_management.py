@@ -1,29 +1,24 @@
+from collections import namedtuple
 import importlib
 import logging
 import time
 
-#
-# config: dict containing at least backend to use and the required
-# config parameters per backend, e.g. url, database and
-#                        collection in case of Ming
+States = namedtuple('States', ['STARTING', 'DELETED', 'RUNNING', 'STOPPED'])
+INSTANCE_STATUS = States('starting', 'deleted', 'running', 'stopped')
 
 
 def get_instance_store(config):
+    """
+    :param config:dict containing at least backend to use and the required
+         config parameters per backend, e.g. url, database and
+         collection in case of Ming
+    :return: backend for instance store
+    """
     class_path = config['local_instance_info']['backend'].split(".")
     module_path = ".".join(class_path[:-1])
     module = importlib.import_module(module_path)
     backend_class = getattr(module, class_path[-1])
     return backend_class(config=config['local_instance_info'])
-
-
-class InstanceStatus:
-    STARTING = 'starting'
-    DELETED = 'deleted'
-    RUNNING = 'running'
-    STOPPED = 'stopped'
-
-    def __init__(self):
-        pass
 
 
 class LocalInstanceManager:
@@ -38,10 +33,10 @@ class LocalInstanceManager:
         :param send_method: method to access messaging for sending info
         :return: -
         """
-        logging.debug('Initialize instance manager')
+        logging.info('Initializing instance manager')
         self._instances = instance_store
         self.send = send_method
-        logging.debug('Instances stored: %r', self.get_instances())
+        logging.info('Instances stored: %r', self.get_instances())
 
     def get_instance(self, instance_id):
         return self._instances.get(instance_id)
@@ -70,4 +65,7 @@ class LocalInstanceManager:
         """
         instance = self.get_instance(instance_id)
         if instance is not None:
+            # jj: was there a reason not to remove it? the functionality was
+            # previously there
+            instance.pop('local', None)
             self.send('info', 'instance_info', {'instance': instance})

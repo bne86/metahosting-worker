@@ -1,5 +1,5 @@
 from mock import Mock
-from workers.instance_management import LocalInstanceManager, InstanceStatus
+from workers.instance_management import LocalInstanceManager, INSTANCE_STATUS
 from stores.dict_store import Store
 import unittest
 
@@ -50,51 +50,26 @@ class LocalStoreTest(unittest.TestCase):
         instance = {'id': '123', 'some info': 'additional'}
         self.assertFalse('status' in instance)
         self.manager.update_instance_status(instance=instance,
-                                            status=InstanceStatus.STARTING,
+                                            status=INSTANCE_STATUS.STARTING,
                                             publish=False)
         self.assertTrue('status' in instance)
-        self.assertEqual(instance['status'], InstanceStatus.STARTING)
+        self.assertEqual(instance['status'], INSTANCE_STATUS.STARTING)
         self.store.update.assert_called_with('123', instance)
 
         self.manager.update_instance_status(instance=instance,
-                                            status=InstanceStatus.DELETED,
+                                            status=INSTANCE_STATUS.DELETED,
                                             publish=False)
         self.assertTrue('status' in instance)
-        self.assertEqual(instance['status'], InstanceStatus.DELETED)
+        self.assertEqual(instance['status'], INSTANCE_STATUS.DELETED)
         self.store.update.assert_called_with('123', instance)
 
         self.store.get = Mock(return_value=instance)
         self.manager.update_instance_status(instance=instance,
-                                            status=InstanceStatus.STARTING,
+                                            status=INSTANCE_STATUS.STARTING,
                                             publish=True)
         self.assertTrue('status' in instance)
-        self.assertEqual(instance['status'], InstanceStatus.STARTING)
+        self.assertEqual(instance['status'], INSTANCE_STATUS.STARTING)
         self.store.update.assert_called_with('123', instance)
         self.store.get.assert_called_with('123')
         self.send_method.assert_called_with('info', 'instance_info',
                                             {'instance': instance})
-
-    def test_remove_fields(self):
-        # remove_fields(instance, filter_fields)
-        instance = {'name': 'foo', 'id': 'bar'}
-        fields = {'name'}
-        self.assertTrue('name' in instance)
-        LocalInstanceManager.remove_fields(instance=instance,
-                                           filter_fields=fields)
-        self.assertFalse('name' in instance)
-        self.assertTrue('id' in instance)
-
-        instance = {'name': 'foo', 'id': 'bar'}
-        fields = {'bar'}
-        LocalInstanceManager.remove_fields(instance=instance,
-                                           filter_fields=fields)
-        self.assertTrue('name' in instance)
-        self.assertTrue('id' in instance)
-
-        instance = {'name': 'foo', 'id': 'bar'}
-        fields = {'name', 'id'}
-        LocalInstanceManager.remove_fields(instance=instance,
-                                           filter_fields=fields)
-        self.assertFalse('name' in instance)
-        self.assertFalse('id' in instance)
-        self.assertDictEqual(instance, {})

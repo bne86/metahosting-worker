@@ -1,7 +1,7 @@
 from mock import Mock
 from workers.dummy_worker import DummyWorker
 import unittest
-from workers.instance_management import InstanceStatus
+from workers.instance_management import INSTANCE_STATUS
 
 
 class DummyWorkerTest(unittest.TestCase):
@@ -23,7 +23,7 @@ class DummyWorkerTest(unittest.TestCase):
         self.worker.create_instance(instance)
         self.instance_manager.update_instance_status.assert_called_with(
             instance,
-            InstanceStatus.STARTING)
+            INSTANCE_STATUS.STARTING)
 
     def test_delete_instance(self):
         message = {'id': '71'}
@@ -37,4 +37,4 @@ class DummyWorkerTest(unittest.TestCase):
         self.worker.delete_instance(message)
         self.instance_manager.get_instance.assert_called_with('71')
         self.instance_manager.update_instance_status.assert_called_with(
-            instance, InstanceStatus.DELETED)
+            instance, INSTANCE_STATUS.DELETED)

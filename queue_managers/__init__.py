@@ -1,6 +1,6 @@
 import copy
 from config_manager import get_configuration
-from queue_managers.rabbit import BlockingPikaManager
+from rabbit import BlockingPikaManager
 
 
 config = get_configuration('messaging')

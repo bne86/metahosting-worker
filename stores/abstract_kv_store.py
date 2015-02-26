@@ -13,10 +13,6 @@ class AbstractKVStore(object):
             self.collection = self.initialize_collection()
 
     def update(self, name, value):
-        # self.collection.insert({'name': name, 'value': value})
-        # self.collection.update(spec={'name': name},
-        #                        document={'name': name, 'value': value},
-        #                        upsert=True)
         self.collection.update(spec={'name': name},
                                updates={'name': name, 'value': value},
                                upsert=True)
@@ -27,8 +23,7 @@ class AbstractKVStore(object):
             return None
         return element['value']
 
-    def get_all(self, sort_key=''):
-        # key = 'value.%s' % sort_key
+    def get_all(self):
         return {
             i['name']: i['value'] for i in self.collection.find()
         }

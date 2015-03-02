@@ -7,17 +7,20 @@ _CONFIG_FILE = 'config.ini'
 
 
 def get_configuration(section_name, config_file=_CONFIG_FILE,
-                      variables=_VARIABLE_NAMES):
+                      variables=_VARIABLE_NAMES, get_all=True):
     var_config = ConfigParser.SafeConfigParser()
     var_config.read(variables)
-    try:
-        items = var_config.items(section=section_name)
-    except ConfigParser.NoSectionError:
-        logging.debug('var config file %s not found', variables)
-        return None
-
     config = ConfigParser.SafeConfigParser()
     config.read(config_file)
+    if get_all:
+        items = config.items(section=section_name)
+    else:
+        try:
+            items = var_config.items(section=section_name)
+        except ConfigParser.NoSectionError:
+            logging.debug('var config file %s not found', variables)
+            return None
+
     properties = {}
     for name, variable in items:
         if variable in os.environ:

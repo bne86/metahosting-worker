@@ -7,22 +7,24 @@ from workers.worker import Worker
 
 
 class DockerWorker(Worker):
-    def __init__(self, config, instance_manager, send_method):
+    def __init__(self, worker_conf, worker_env, instance_manager, send_method):
         """
         Call super-class constructor for common configuration items and
         then do the docker-specific setup
-        :param config: dict containing the configuration
+        :param worker_conf: dict containing the configuration
+        :param worker_env: dict containing the configurable environment
         :param instance_manager: local instance manger
         :param send_method: messaging communication method
         :return: -
         """
-        super(DockerWorker, self).__init__(config,
+        super(DockerWorker, self).__init__(worker_conf,
+                                           worker_env,
                                            instance_manager,
                                            send_method)
         logging.debug('DockerWorker initialization')
-        self.docker = Client(base_url=self.config['worker']['base_url'],
-                             version=self.config['worker']['client_version'],
-                             tls=DockerWorker._get_tls(config))
+        self.docker = Client(base_url=self.worker_conf['base_url'],
+                             version=self.worker_conf['client_version'],
+                             tls=DockerWorker._get_tls(worker_conf))
         self._initialize_image()
 
     @Worker.callback('create_instance')
@@ -55,7 +57,7 @@ class DockerWorker(Worker):
                                               status=INSTANCE_STATUS.DELETED)
 
     def _initialize_image(self):
-        self.worker_info['image'] = self.config['worker']['image']
+        self.worker_info['image'] = self.worker_conf['image']
         logging.info('Importing image %s', self.worker_info['image'])
         # status update
         self.docker.import_image(image=self.worker_info['image'])
@@ -120,16 +122,16 @@ class DockerWorker(Worker):
 
     @staticmethod
     def _get_tls(config):
-        keys = config['worker'].keys()
+        keys = config.keys()
         if 'client_cert' in keys and 'client_key' in keys \
                 and 'tls_verify' in keys:
-            if config['worker']['tls_verify'] == 'True':
+            if config['tls_verify'] == 'True':
                 verify = True
             else:
                 verify = False
             return TLSConfig(client_cert=
-                             (config['worker']['client_cert'],
-                              config['worker']['client_key'],),
+                             (config['client_cert'],
+                              config['client_key'],),
                              verify=verify)
         return False
 

@@ -14,11 +14,11 @@ def get_instance_store(config):
          collection in case of Ming
     :return: backend for instance store
     """
-    class_path = config['local_instance_info']['backend'].split(".")
+    class_path = config['backend'].split(".")
     module_path = ".".join(class_path[:-1])
     module = importlib.import_module(module_path)
     backend_class = getattr(module, class_path[-1])
-    return backend_class(config=config['local_instance_info'])
+    return backend_class(config=config)
 
 
 class LocalInstanceManager:

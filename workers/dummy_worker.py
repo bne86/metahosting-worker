@@ -6,16 +6,18 @@ from workers.worker import Worker
 
 
 class DummyWorker(Worker):
-    def __init__(self, config, instance_manager, send_method):
+    def __init__(self, worker_conf, worker_env, instance_manager, send_method):
         """
         Call super-class constructor for common configuration items and
         then do the docker-specific setup
-        :param config: dict containing the configuration
+        :param worker_conf: dict containing the configuration
+        :param worker_env: dict containing the configurable environment
         :param instance_manager: storage backend for worker-local instances
         :return: -
         """
         logging.debug('DummyWorker initialization')
-        super(DummyWorker, self).__init__(config,
+        super(DummyWorker, self).__init__(worker_conf,
+                                          worker_env,
                                           instance_manager,
                                           send_method)
 

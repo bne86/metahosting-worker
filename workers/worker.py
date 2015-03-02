@@ -18,21 +18,22 @@ class Worker(object):
     callbacks = dict()
     PUBLISHING_INTERVAL = 15
 
-    def __init__(self, config, instance_manager, send_method):
+    def __init__(self, worker_conf, worker_env,  instance_manager, send_method):
         logging.debug('Worker initialization')
 
         self.send = send_method
-        self.config = config
+        self.worker_conf = worker_conf
+        self.worker_env = worker_env
         self.instances = instance_manager
         self.worker_info = dict()
-        self.worker_info['name'] = config['worker']['name']
-        self.worker_info['description'] = config['worker']['description']
+        self.worker_info['name'] = worker_conf['name']
+        self.worker_info['description'] = worker_conf['description']
 
         self.worker_info['environment'] = dict()
-        if 'configurable_env' in self.config:
-            for item in self.config['configurable_env'].keys():
+        if 'configurable_env' in self.worker_conf:
+            for item in self.worker_env.keys():
                 self.worker_info['environment'][item.upper()] \
-                    = self.config['configurable_env'][item]
+                    = self.worker_env[item]
         self.publishing_thread = None
         self.subscribing_thread = None
 
@@ -99,20 +100,16 @@ class Worker(object):
         generate a value using lowercase, uppercase and digits.
         :return: list containing key=value pairs send to docker
         """
-        injected_parameters = dict()
         if 'environment' in self.worker_info.keys():
             local_parameters = self.worker_info['environment']
         else:
             local_parameters = dict()
         environment = []
         for key in local_parameters.keys():
-            if key in injected_parameters.keys():
-                environment.append(key + '=' + injected_parameters[key])
+            if local_parameters[key] == '':
+                environment.append(key + '=' + get_random_key())
             else:
-                if local_parameters[key] == '':
-                    environment.append(key + '=' + get_random_key())
-                else:
-                    environment.append(key + '=' + local_parameters[key])
+                environment.append(key + '=' + local_parameters[key])
         logging.debug('Current environment for VM: %s', environment)
         return environment
 

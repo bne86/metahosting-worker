@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import argparse
-import ConfigParser
+from config_manager import get_configuration
 import importlib
 import logging
 import signal
@@ -9,28 +9,12 @@ from workers.instance_management import LocalInstanceManager, \
     get_instance_store
 from queue_managers import send_message
 
-
-def _get_cfg_as_dict(config):
-    """
-    Converts a ConfigParser object into a dictionary.
-
-    The resulting dictionary has sections as keys which point to a dict of the
-    sections options as key => value pairs.
-    """
-    config_dict = {}
-    for section in config.sections():
-        config_dict[section] = {}
-        for key, val in config.items(section):
-            config_dict[section][key] = val
-    return config_dict
-
-
 def _get_backend_class(config):
     """
     :param config: worker configuration (inifile parsed to dict)
     :return: worker backend class
     """
-    class_data = config['worker']['backend'].split(".")
+    class_data = config['backend'].split(".")
     module_path = ".".join(class_data[:-1])
     module = importlib.import_module(module_path)
     class_str = class_data[-1]
@@ -52,18 +36,22 @@ def run():
     else:
         logger.setLevel(logging.INFO)
     if args.config:
-        config = ConfigParser.SafeConfigParser()
-        config.readfp(open(args.config))
+        config_file = args.config
     else:
-        config = ConfigParser.SafeConfigParser()
-        config.readfp(open('config.ini'))
-    config = _get_cfg_as_dict(config)
+        config_file = 'config.ini'
 
-    instance_store = get_instance_store(config=config)
+    instance_store = get_instance_store(config=get_configuration(
+            'local_instance_store', config_file=config_file))
     instance_manager = LocalInstanceManager(instance_store=instance_store,
                                             send_method=send_message)
-    worker_class = _get_backend_class(config)
-    worker = worker_class(config, instance_manager, send_message)
+
+    worker_config = get_configuration('worker', config_file=config_file)
+    worker_env = get_configuration('configurable_env', config_file=config_file)
+    worker_class = _get_backend_class(worker_config)
+    worker = worker_class(worker_config,
+                          worker_env,
+                          instance_manager,
+                          send_message)
     # try to exit gracefully
     signal.signal(signal.SIGTERM, worker.stop)
     signal.signal(signal.SIGHUP, worker.stop)

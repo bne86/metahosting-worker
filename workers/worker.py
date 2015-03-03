@@ -30,7 +30,7 @@ class Worker(object):
         self.worker_info['description'] = worker_conf['description']
 
         self.worker_info['environment'] = dict()
-        if 'configurable_env' in self.worker_conf:
+        if worker_env:
             for item in self.worker_env.keys():
                 self.worker_info['environment'][item.upper()] \
                     = self.worker_env[item]

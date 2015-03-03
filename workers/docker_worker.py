@@ -27,19 +27,37 @@ class DockerWorker(Worker):
                              tls=DockerWorker._get_tls(worker_conf))
         self._initialize_image()
 
+        self.allowed_ports = []
+        for item in range(int(self.worker_conf['portrange_count'])):
+            self.allowed_ports.append(int(self.worker_conf['portrange_start'])
+                                      + item)
+        self.allowed_ports = frozenset(self.allowed_ports)
+
     @Worker.callback('create_instance')
     def create_instance(self, message):
         instance = message.copy()
         logging.info('Creating instance id: %s', instance['id'])
         environment = self._create_container_environment()
-        container = self.docker.create_container(self.worker_info['image'],
-                                                 environment=environment)
-        self.docker.start(container, publish_all_ports=True)
-        instance['local'] = container
-        instance['environment'] = environment
-        instance['connection'] = self._get_connection_details(container['Id'])
-        self.instances.update_instance_status(instance=instance,
-                                              status=INSTANCE_STATUS.STARTING)
+        ports_required = self._get_image_ports(self.worker_info['image'])
+        ports = self._get_available_ports(ports_required)
+        if ports:
+            port_mapping = dict(zip(ports_required, ports))
+            container = self.docker.create_container(self.worker_info['image'],
+                                                     environment=environment,
+                                                     ports=ports_required)
+
+            self.docker.start(container, port_bindings=port_mapping)
+            instance['local'] = container
+            instance['environment'] = environment
+            instance['connection'] = self._get_connection_details(
+                container['Id'])
+            self.instances.update_instance_status(instance=instance,
+                                                  status=
+                                                  INSTANCE_STATUS.STARTING)
+        else:
+            self.instances.update_instance_status(instance=instance,
+                                                  status=
+                                                  INSTANCE_STATUS.FAILED)
 
     @Worker.callback('delete_instance')
     def delete_instance(self, message):
@@ -49,9 +67,11 @@ class DockerWorker(Worker):
         container = self._get_container(container_id=container_id)
         if not container:
             logging.error('Container does not exist, not stopping it')
+            return
         # we could view the container['State']['Running'] value here
 
         self.docker.stop(container)
+        self.docker.remove_container(container)
         instance_local = self.instances.get_instance(instance['id'])
         self.instances.update_instance_status(instance=instance_local,
                                               status=INSTANCE_STATUS.DELETED)
@@ -63,13 +83,19 @@ class DockerWorker(Worker):
         self.docker.import_image(image=self.worker_info['image'])
 
     def _get_container(self, container_id):
-        return self.docker.inspect_container({'Id': container_id})
+        try:
+            container = self.docker.inspect_container({'Id': container_id})
+        except docker.errors.APIError as error:
+            logging.error('Not able to get requested container %s, ettot %s',
+                          container_id, error)
+            return False
+        return container
 
     def _get_container_id(self, instance_id):
         try:
             instance_local = self.instances.get_instance(instance_id)
             return instance_local['local']['Id']
-        except TypeError as err:
+        except KeyError or TypeError as err:
             logging.error('Instance %s not found %s', instance_id, err.message)
             return False
 
@@ -86,13 +112,11 @@ class DockerWorker(Worker):
         """
         instances = self.instances.get_instances()
         for instance_id in instances.keys():
-            container_id = instances[instance_id]['local']['Id']
-
-            try:
-                container = self._get_container(container_id)
-            except docker.errors.APIError as error:
-                logging.error('Container not available, set to stopped  %s',
-                              error)
+            container_id = self._get_container_id(instance_id)
+            container = self._get_container(container_id)
+            if not container_id or not container:
+                logging.error('Container not available, set to stopped: %s',
+                              container_id)
                 instances[instance_id].pop('connection', None)
                 self.instances.update_instance_status(instances
                                                       [instance_id],
@@ -111,7 +135,41 @@ class DockerWorker(Worker):
                 self.instances.update_instance_status(instances
                                                       [instance_id],
                                                       INSTANCE_STATUS.STOPPED)
-                return
+                continue
+
+    def _get_image_ports(self, image):
+        logging.debug('extract ports from image')
+        ports = []
+        docker_image = self.docker.inspect_image(image)
+        for port in docker_image[u'ContainerConfig'][u'ExposedPorts'].keys():
+            ports.append(port.split('/')[0])
+        return ports
+
+    def _get_available_ports(self, ports):
+        """
+        get all containers, that have not been stopped, they may have been
+        started from outside of the workers scope.
+        :param ports: ports for the new container
+        :return: array with ports to use, None if not enough ports available
+        """
+        count = len(ports)
+        used_ports = set()
+        containers = self.docker.containers()
+        for container in containers:
+            for port in container['Ports']:
+                used_ports.add(port['PublicPort'])
+        available_ports = set(self.allowed_ports.difference(used_ports))
+        print available_ports
+        if count <= len(available_ports):
+            ports = []
+            for item in range(0, count):
+                print 'inner', ports
+                ports.append(available_ports.pop())
+            print 'ext', ports
+            return ports
+        else:
+            return False
+
 
     # do static method make any sense at all in python?
     @staticmethod
@@ -138,3 +196,5 @@ class DockerWorker(Worker):
     @staticmethod
     def _extract_connection(container):
         return container['NetworkSettings']['Ports']
+
+

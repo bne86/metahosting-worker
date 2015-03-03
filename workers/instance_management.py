@@ -3,8 +3,9 @@ import importlib
 import logging
 import time
 
-States = namedtuple('States', ['STARTING', 'DELETED', 'RUNNING', 'STOPPED'])
-INSTANCE_STATUS = States('starting', 'deleted', 'running', 'stopped')
+States = namedtuple('States', ['STARTING', 'DELETED', 'RUNNING', 'STOPPED',
+                               'FAILED'])
+INSTANCE_STATUS = States('starting', 'deleted', 'running', 'stopped', 'failed')
 
 
 def get_instance_store(config):

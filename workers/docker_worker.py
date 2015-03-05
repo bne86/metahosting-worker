@@ -79,7 +79,6 @@ class DockerWorker(Worker):
     def _initialize_image(self):
         self.worker_info['image'] = self.worker_conf['image']
         logging.info('Importing image %s', self.worker_info['image'])
-        # status update
         self.docker.import_image(image=self.worker_info['image'])
 
     def _get_container(self, container_id):
@@ -135,10 +134,9 @@ class DockerWorker(Worker):
                 self.instances.update_instance_status(instances
                                                       [instance_id],
                                                       INSTANCE_STATUS.STOPPED)
-                continue
 
     def _get_image_ports(self, image):
-        logging.debug('extract ports from image')
+        logging.debug('Extracting ports from image')
         ports = []
         docker_image = self.docker.inspect_image(image)
         for port in docker_image[u'ContainerConfig'][u'ExposedPorts'].keys():
@@ -159,17 +157,13 @@ class DockerWorker(Worker):
             for port in container['Ports']:
                 used_ports.add(port['PublicPort'])
         available_ports = set(self.allowed_ports.difference(used_ports))
-        print available_ports
         if count <= len(available_ports):
             ports = []
             for item in range(0, count):
-                print 'inner', ports
                 ports.append(available_ports.pop())
-            print 'ext', ports
             return ports
         else:
             return False
-
 
     # do static method make any sense at all in python?
     @staticmethod

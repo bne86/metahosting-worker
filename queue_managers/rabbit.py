@@ -18,7 +18,7 @@ class BlockingPikaManager(object):
 
         self.channel = self.connection.channel()
         if queue is not None:
-            self.channel.queue_declare(queue=queue)
+            self.channel.queue_declare(queue=queue, durable=True)
         logging.debug('Connected to messaging')
         self.thread = threading.Thread(target=self.channel.start_consuming)
         self.thread.setDaemon(True)

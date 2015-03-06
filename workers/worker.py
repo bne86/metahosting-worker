@@ -44,6 +44,7 @@ class Worker(object):
         :return:
         """
         self.worker_info['available'] = True
+
         self.publishing_thread = threading.Thread(
             target=self._publish_information)
         self.publishing_thread.start()

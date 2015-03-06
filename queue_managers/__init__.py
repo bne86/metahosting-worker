@@ -17,7 +17,6 @@ def managed(queue):
                                   password=config['pass'],
                                   queue=queue)
     yield manager
-    manager.disconnect()
 
 
 def send_message(routing_key, subject, message):

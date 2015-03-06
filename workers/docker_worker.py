@@ -68,8 +68,6 @@ class DockerWorker(Worker):
         if not container:
             logging.error('Container does not exist, not stopping it')
             return
-        # we could view the container['State']['Running'] value here
-
         self.docker.stop(container)
         self.docker.remove_container(container)
         instance_local = self.instances.get_instance(instance['id'])
@@ -77,9 +75,13 @@ class DockerWorker(Worker):
                                               status=INSTANCE_STATUS.DELETED)
 
     def _initialize_image(self):
+        logging.info('Managing image %s', self.worker_conf['image'])
         self.worker_info['image'] = self.worker_conf['image']
-        logging.info('Importing image %s', self.worker_info['image'])
-        self.docker.import_image(image=self.worker_info['image'])
+        tmp = self.worker_info['image'].split(':')
+        if len(tmp) == 2:
+            self.docker.import_image(image=tmp[0], tag=tmp[1])
+        else:
+            self.docker.import_image(image=tmp)
 
     def _get_container(self, container_id):
         try:

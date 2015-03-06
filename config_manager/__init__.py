@@ -24,16 +24,17 @@ def get_configuration(section_name, config_file=None,
 
     properties = {}
     for name, variable in config_items:
+        overwritten = False
         if name in env_overrides:
             tmp = var_config.get(section=section_name, option=name)
             if tmp in os.environ:
+                overwritten = True
                 properties[name] = os.getenv(tmp)
-        else:
+        if not overwritten:
             try:
                 properties[name] = variable
             except ConfigParser.NoOptionError:
                 logging.error('Unable to initialize %s for %s', name,
                               section_name)
                 return None
-    print properties
     return properties

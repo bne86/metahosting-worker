@@ -18,7 +18,7 @@ class BlockingPikaManager(object):
 
         self.channel = self.connection.channel()
         if queue is not None:
-            self.channel.queue_declare(queue=queue)
+            self.channel.queue_declare(queue=queue, durable=True)
         logging.debug('Connected to messaging')
         self.thread = threading.Thread(target=self.channel.start_consuming)
         self.thread.setDaemon(True)
@@ -52,10 +52,6 @@ class BlockingPikaManager(object):
         self.channel.basic_consume(callback_wrapper, queue=routing_key)
         if not self.thread.is_alive():
             self.thread.start()
-
-    def unsubscribe(self, routing_key, listener):
-        # self.channel.basic_cancel(consumer_tag=listener.__name__)
-        raise NotImplementedError
 
     def disconnect(self):
         if self.connection.is_open:

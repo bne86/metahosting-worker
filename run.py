@@ -9,6 +9,7 @@ from workers.instance_management import LocalInstanceManager, \
     get_instance_store
 from queue_managers import send_message
 
+
 def _get_backend_class(config):
     """
     :param config: worker configuration (inifile parsed to dict)
@@ -41,7 +42,7 @@ def run():
         config_file = 'config.ini'
 
     instance_store = get_instance_store(config=get_configuration(
-            'local_instance_store', config_file=config_file))
+        'local_instance_store', config_file=config_file))
     instance_manager = LocalInstanceManager(instance_store=instance_store,
                                             send_method=send_message)
 
@@ -56,6 +57,7 @@ def run():
     signal.signal(signal.SIGTERM, worker.stop)
     signal.signal(signal.SIGHUP, worker.stop)
     worker.start()
+
 
 if __name__ == "__main__":
     run()

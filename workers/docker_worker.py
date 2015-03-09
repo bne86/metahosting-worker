@@ -162,16 +162,13 @@ class DockerWorker(Worker):
         print available_ports
         if count <= len(available_ports):
             ports = []
-            for item in range(0, count):
+            for _ in range(0, count):
                 print 'inner', ports
                 ports.append(available_ports.pop())
             print 'ext', ports
             return ports
         else:
             return False
-
-
-    # do static method make any sense at all in python?
     @staticmethod
     def _is_running(container):
         if 'State' not in container or 'Running' not in container['State']:

@@ -1,6 +1,6 @@
 import copy
 from config_manager import get_configuration
-from rabbit import BlockingPikaManager
+from queue_managers.rabbit import BlockingPikaManager
 
 
 config = get_configuration('messaging')
@@ -21,7 +21,7 @@ def get_manager(queue=None):
 def send_message(routing_key, subject, message):
     msg = copy.copy(message)
     msg['subject'] = subject
-    get_manager().publish(routing_key, msg)
+    get_manager(routing_key).publish(routing_key, msg)
 
 
 def subscribe(routing_key, callback):

@@ -24,8 +24,7 @@ def managed(queue):
 def send_message(routing_key, subject, message):
     msg = copy.copy(message)
     msg['subject'] = subject
-    with managed(routing_key) as manager:
-        manager.publish(routing_key, msg)
+    managed(routing_key).publish(routing_key, msg)
 
 
 def get_message_subject(message):
@@ -35,5 +34,4 @@ def get_message_subject(message):
 
 
 def subscribe(routing_key, callback):
-    with managed(routing_key) as manager:
-        manager.subscribe(routing_key, callback)
+    managed(routing_key).subscribe(routing_key, callback)

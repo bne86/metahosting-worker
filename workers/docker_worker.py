@@ -27,11 +27,11 @@ class DockerWorker(Worker):
                              tls=DockerWorker._get_tls(worker_conf))
         self._initialize_image()
 
-        self.allowed_ports = []
+        allowed_ports_ports = []
         for item in range(int(self.worker_conf['portrange_count'])):
-            self.allowed_ports.append(int(self.worker_conf['portrange_start'])
-                                      + item)
-        self.allowed_ports = frozenset(self.allowed_ports)
+            allowed_ports_ports.append(int(self.worker_conf['portrange_start'])
+                                       + item)
+        self.allowed_ports = frozenset(allowed_ports_ports)
 
     @Worker.callback('create_instance')
     def create_instance(self, message):
@@ -68,8 +68,6 @@ class DockerWorker(Worker):
         if not container:
             logging.error('Container does not exist, not stopping it')
             return
-        # we could view the container['State']['Running'] value here
-
         self.docker.stop(container)
         self.docker.remove_container(container)
         instance_local = self.instances.get_instance(instance['id'])
@@ -77,10 +75,13 @@ class DockerWorker(Worker):
                                               status=INSTANCE_STATUS.DELETED)
 
     def _initialize_image(self):
+        logging.info('Managing image %s', self.worker_conf['image'])
         self.worker_info['image'] = self.worker_conf['image']
-        logging.info('Importing image %s', self.worker_info['image'])
-        # status update
-        self.docker.import_image(image=self.worker_info['image'])
+        tmp = self.worker_info['image'].split(':')
+        if len(tmp) == 2:
+            self.docker.import_image(image=tmp[0], tag=tmp[1])
+        else:
+            self.docker.import_image(image=tmp)
 
     def _get_container(self, container_id):
         try:
@@ -135,10 +136,9 @@ class DockerWorker(Worker):
                 self.instances.update_instance_status(instances
                                                       [instance_id],
                                                       INSTANCE_STATUS.STOPPED)
-                continue
 
     def _get_image_ports(self, image):
-        logging.debug('extract ports from image')
+        logging.debug('Extracting ports from image')
         ports = []
         docker_image = self.docker.inspect_image(image)
         for port in docker_image[u'ContainerConfig'][u'ExposedPorts'].keys():
@@ -159,16 +159,14 @@ class DockerWorker(Worker):
             for port in container['Ports']:
                 used_ports.add(port['PublicPort'])
         available_ports = set(self.allowed_ports.difference(used_ports))
-        print available_ports
         if count <= len(available_ports):
             ports = []
             for _ in range(0, count):
-                print 'inner', ports
                 ports.append(available_ports.pop())
-            print 'ext', ports
             return ports
         else:
             return False
+
     @staticmethod
     def _is_running(container):
         if 'State' not in container or 'Running' not in container['State']:

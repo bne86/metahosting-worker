@@ -10,9 +10,7 @@ INSTANCE_STATUS = States('starting', 'deleted', 'running', 'stopped', 'failed')
 
 def get_instance_store(config):
     """
-    :param config:dict containing at least backend to use and the required
-         config parameters per backend, e.g. url, database and
-         collection in case of Ming
+    :param config:dict containing the storage backend configuration
     :return: backend for instance store
     """
     class_path = config['backend'].split(".")

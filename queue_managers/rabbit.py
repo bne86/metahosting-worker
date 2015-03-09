@@ -9,11 +9,10 @@ class BlockingPikaManager(object):
     def __init__(self, host, port, user='guest', password='guest', queue=None):
         logging.debug('Initializing...')
         credentials = pika.PlainCredentials(user, password)
-        self.parameters = \
-            pika.ConnectionParameters(host=host,
-                                      port=port,
-                                      virtual_host='',
-                                      credentials=credentials)
+        self.parameters = pika.ConnectionParameters(host=host,
+                                                    port=port,
+                                                    virtual_host='',
+                                                    credentials=credentials)
         self.connection = self._get_connection()
 
         self.channel = self.connection.channel()

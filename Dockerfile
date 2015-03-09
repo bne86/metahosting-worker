@@ -8,6 +8,5 @@ WORKDIR /app
 ADD requirements.txt /app/
 RUN pip install -r requirements.txt
 ADD . /app/
-ENV LC_CTYPE  en_US.utf-8
 WORKDIR /app/
 CMD /app/run.py --config config.ini

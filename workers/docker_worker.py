@@ -126,7 +126,7 @@ class DockerWorker(Worker):
 
             if DockerWorker._is_running(container):  # and status not running?
                 connection_details = \
-                    DockerWorker._extract_connection(container)
+                    self._extract_connection(container)
                 instances[instance_id]['connection'] = connection_details
                 self.instances.update_instance_status(instances
                                                       [instance_id],
@@ -189,8 +189,12 @@ class DockerWorker(Worker):
                              verify=verify)
         return False
 
-    @staticmethod
-    def _extract_connection(container):
-        return container['NetworkSettings']['Ports']
+    def _extract_connection(self, container):
+        ports = container['NetworkSettings']['Ports']
+        if 'ip' in self.worker_conf.keys():
+            for port in ports:
+                ports[port][0][u'HostIp'] = \
+                    unicode(self.worker_conf['ip'])
+        return ports
 
 

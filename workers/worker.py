@@ -4,8 +4,9 @@ import random
 import string
 import threading
 from time import sleep
-from queue_managers import get_message_subject, subscribe
+from queue_managers import get_message_subject, subscribe, unsubscribe
 
+_shutdown_flag = False
 
 def get_random_key(length=16):
     return ''.join(
@@ -43,27 +44,27 @@ class Worker(object):
         same time subscribe for create_instance messages on own queue
         :return:
         """
+        logging.debug('Worker started')
         self.worker_info['available'] = True
-
-        self.publishing_thread = threading.Thread(
-            target=self._publish_information)
-        self.publishing_thread.start()
         subscribe(self.worker_info['name'], self._dispatch)
+        self._publish_information()
 
-    def stop(self):
+
+    def stop(self, signal, stack):
         """
         try to catch a SIGTERM signal in main thread and stop, not working.
         :param signal:
         :param stack:
         :return:
         """
+        logging.debug('Worker stopped with signal %s', signal)
         self.worker_info['available'] = False
         self.publish_type()
-        if self.publishing_thread:
-            self.publishing_thread.join()
+        global _shutdown_flag
+        _shutdown_flag = True
 
     def _publish_information(self):
-        while True:
+        while not _shutdown_flag:
             logging.info('Publishing type and status updates: %s',
                          self.worker_info['name'])
             self.publish_type()

@@ -2,11 +2,11 @@ from abc import ABCMeta, abstractmethod
 import logging
 import random
 import string
-import threading
 from time import sleep
-from queue_managers import get_message_subject, subscribe, unsubscribe
+from queue_managers import get_message_subject, subscribe
 
-_shutdown_flag = False
+_shutdown_worker = False
+
 
 def get_random_key(length=16):
     return ''.join(
@@ -60,11 +60,11 @@ class Worker(object):
         logging.debug('Worker stopped with signal %s', signal)
         self.worker_info['available'] = False
         self.publish_type()
-        global _shutdown_flag
-        _shutdown_flag = True
+        global _shutdown_worker
+        _shutdown_worker = True
 
     def _publish_information(self):
-        while not _shutdown_flag:
+        while not _shutdown_worker:
             logging.info('Publishing type and status updates: %s',
                          self.worker_info['name'])
             self.publish_type()

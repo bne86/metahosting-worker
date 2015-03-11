@@ -3,7 +3,7 @@ import logging
 import random
 import string
 from time import sleep
-from queue_managers import get_message_subject, subscribe
+from queue_managers import get_message_subject, set_manager, subscribe
 
 _shutdown_worker = False
 
@@ -19,7 +19,7 @@ class Worker(object):
     callbacks = dict()
     PUBLISHING_INTERVAL = 15
 
-    def __init__(self, worker_conf, worker_env,  instance_manager, send_method):
+    def __init__(self, worker_conf, worker_env, instance_manager, send_method):
         logging.debug('Worker initialization')
 
         self.send = send_method
@@ -35,8 +35,6 @@ class Worker(object):
             for item in self.worker_env.keys():
                 self.worker_info['environment'][item.upper()] \
                     = self.worker_env[item]
-        self.publishing_thread = None
-        self.subscribing_thread = None
 
     def start(self):
         """
@@ -46,9 +44,9 @@ class Worker(object):
         """
         logging.debug('Worker started')
         self.worker_info['available'] = True
+        set_manager(queue=['info', self.worker_info['name']])
         subscribe(self.worker_info['name'], self._dispatch)
         self._publish_information()
-
 
     def stop(self, signal, stack):
         """

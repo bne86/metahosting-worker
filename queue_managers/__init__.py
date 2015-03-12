@@ -1,29 +1,30 @@
-from contextlib import contextmanager
 import copy
 from config_manager import get_configuration
 from queue_managers.rabbit import BlockingPikaManager
 
 
-@contextmanager
-def managed(queue):
-    config = get_configuration('messaging') or {'host': 'localhost',
-                                                'port': 5672,
-                                                'user': 'guest',
-                                                'pass': 'guest'}
+managers = dict()
 
-    manager = BlockingPikaManager(host=config['host'],
-                                  port=int(config['port']),
-                                  user=config['user'],
-                                  password=config['pass'],
-                                  queue=queue)
-    yield manager
+
+def managed(queue):
+    if queue not in managers:
+        config = get_configuration('messaging') or {'host': 'localhost',
+                                                    'port': 5672,
+                                                    'user': 'guest',
+                                                    'pass': 'guest'}
+
+        managers[queue] = BlockingPikaManager(host=config['host'],
+                                              port=int(config['port']),
+                                              user=config['user'],
+                                              password=config['pass'],
+                                              queue=queue)
+    return managers[queue]
 
 
 def send_message(routing_key, subject, message):
     msg = copy.copy(message)
     msg['subject'] = subject
-    with managed(routing_key) as manager:
-        manager.publish(routing_key, msg)
+    managed(routing_key).publish(routing_key, msg)
 
 def get_message_subject(message):
     if 'subject' not in message:
@@ -32,5 +33,4 @@ def get_message_subject(message):
 
 
 def subscribe(routing_key, callback):
-    with managed(routing_key) as manager:
-        manager.subscribe(routing_key, callback)
+    managed(routing_key).subscribe(routing_key, callback)

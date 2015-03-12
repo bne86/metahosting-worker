@@ -54,9 +54,10 @@ def run():
                           worker_env,
                           instance_manager,
                           send_message)
-    # try to exit gracefully
+
     signal.signal(signal.SIGTERM, worker.stop)
     signal.signal(signal.SIGHUP, worker.stop)
+    signal.signal(signal.SIGINT, worker.stop)
     worker.start()
 
 

@@ -10,9 +10,10 @@ class DummyWorkerTest(unittest.TestCase):
         self.send_method = Mock()
         config = {'worker': {'name': 'dummyTest',
                              'description': 'foo bar bar'}}
-        self.worker = DummyWorker(config=config,
-                                  instance_manager=self.instance_manager,
-                                  send_method=self.send_method)
+        self.worker = DummyWorker(
+            worker_conf=config, worker_env=None,
+            instance_manager=self.instance_manager,
+            send_method=self.send_method)
 
     def tearDown(self):
         pass

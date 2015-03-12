@@ -87,7 +87,7 @@ class DockerWorker(Worker):
         try:
             container = self.docker.inspect_container({'Id': container_id})
         except docker.errors.APIError as error:
-            logging.error('Not able to get requested container %s, ettot %s',
+            logging.error('Unable to get requested container %s, error %s',
                           container_id, error)
             return False
         return container
@@ -127,6 +127,7 @@ class DockerWorker(Worker):
             if DockerWorker._is_running(container):  # and status not running?
                 connection_details = \
                     self._extract_connection(container)
+                self._extract_url(container)
                 instances[instance_id]['connection'] = connection_details
                 self.instances.update_instance_status(instances
                                                       [instance_id],
@@ -196,4 +197,5 @@ class DockerWorker(Worker):
                     unicode(self.worker_conf['ip'])
         return ports
 
-
+    def _extract_url(self, container):
+        pass

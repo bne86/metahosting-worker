@@ -5,9 +5,9 @@ import config_manager
 import importlib
 import logging
 import signal
-from workers.instance_management import LocalInstanceManager, \
-    get_instance_store
+from workers.manager.persistence import LocalInstanceManager
 from queue_managers import send_message
+
 
 def _get_backend_class(config):
     """
@@ -40,17 +40,16 @@ def run():
     if args.config:
         config_manager._CONFIG_FILE = args.config
 
-    instance_store = get_instance_store(config=config_manager.get_configuration(
-                                        'local_persistency'))
-    instance_manager = LocalInstanceManager(instance_store=instance_store,
-                                            send_method=send_message)
+    local_persistence = LocalInstanceManager(
+        config=config_manager.get_configuration('local_persistence'),
+        send_method=send_message)
 
     worker_config = config_manager.get_configuration('worker')
     worker_env = config_manager.get_configuration('configurable_env')
     worker_class = _get_backend_class(worker_config)
     worker = worker_class(worker_config,
                           worker_env,
-                          instance_manager,
+                          local_persistence,
                           send_message)
 
     signal.signal(signal.SIGTERM, worker.stop)

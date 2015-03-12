@@ -8,33 +8,21 @@ States = namedtuple('States', ['STARTING', 'DELETED', 'RUNNING', 'STOPPED',
 INSTANCE_STATUS = States('starting', 'deleted', 'running', 'stopped', 'failed')
 
 
-def get_instance_store(config):
-    """
-    :param config:dict containing the storage backend configuration
-    :return: backend for instance store
-    """
-    class_path = config['backend'].split(".")
-    module_path = ".".join(class_path[:-1])
-    module = importlib.import_module(module_path)
-    backend_class = getattr(module, class_path[-1])
-    return backend_class(config=config)
-
-
 class LocalInstanceManager:
     """
     wrapper around a store (metahosting.stores) to store instance information
     for local management.
     """
 
-    def __init__(self, instance_store, send_method):
+    def __init__(self, config, send_method):
         """
-        :param instance_store: where to store instances
+        :param config: local_persistence part of the config
         :param send_method: method to access messaging for sending info
         :return: -
         """
         logging.info('Initializing instance manager')
-        self._instances = instance_store
-        self.send = send_method
+        self._instances = get_instance_store(config)
+        self.publish = send_method
         logging.info('Instances stored: %r', self.get_instances())
 
     def get_instance(self, instance_id):
@@ -56,15 +44,20 @@ class LocalInstanceManager:
     def publish_instance(self, instance_id):
         """
         Send information of the corresponding instance to the messaging system
-        Do not send 'local' tagged information from the local storage backend
-
         :param instance_id: id of the instance that we publish information for
-        publish, default = local
         :return: -
         """
         instance = self.get_instance(instance_id)
         if instance is not None:
-            # jj: was there a reason not to remove it? the functionality was
-            # previously there
-            instance.pop('local', None)
-            self.send('info', 'instance_info', {'instance': instance})
+            self.publish('info', 'instance_info', {'instance': instance})
+
+
+def get_instance_store(config):
+    """
+    :param config:dict containing the storage backend configuration
+    :return: backend for instance store
+    """
+    class_path = config['backend'].split(".")
+    module = importlib.import_module(".".join(class_path[:-1]))
+    backend_class = getattr(module, class_path[-1])
+    return backend_class(config=config)

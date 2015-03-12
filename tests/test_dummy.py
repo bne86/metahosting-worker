@@ -11,7 +11,7 @@ class DummyWorkerTest(unittest.TestCase):
         config = {'worker': {'name': 'dummyTest',
                              'description': 'foo bar bar'}}
         self.worker = DummyWorker(config=config,
-                                  instance_manager=self.instance_manager,
+                                  local_persistence=self.instance_manager,
                                   send_method=self.send_method)
 
     def tearDown(self):

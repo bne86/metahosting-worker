@@ -7,18 +7,19 @@ import threading
 
 class BlockingPikaManager(object):
     def __init__(self, host, port, user='guest', password='guest', queue=None):
-        logging.debug('Initializing...')
+        logging.debug('Initializing Messaging')
         credentials = pika.PlainCredentials(user, password)
         self.parameters = pika.ConnectionParameters(host=host,
                                                     port=port,
                                                     virtual_host='',
                                                     credentials=credentials)
         self.connection = self._get_connection()
-
         self.channel = self.connection.channel()
-        if queue is not None:
+        if type(queue) == str:
             self.channel.queue_declare(queue=queue, durable=True)
-        logging.debug('Connected to messaging')
+        elif type(queue) == list:
+            for item in queue:
+                self.channel.queue_declare(queue=item, durable=True)
         self.thread = threading.Thread(target=self.channel.start_consuming)
         self.thread.setDaemon(True)
 

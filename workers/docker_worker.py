@@ -92,8 +92,8 @@ class DockerWorker(Worker):
         try:
             return \
                 self.local_persistence.get_instance(instance_id)['local']['Id']
-        except KeyError or TypeError:
-            logging.debug('Instance %s not found %s', instance_id)
+        except (KeyError, TypeError):
+            logging.debug('Container for instance %s not found', instance_id)
             return False
 
     def _get_container(self, container_id):

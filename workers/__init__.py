@@ -2,8 +2,9 @@ from abc import ABCMeta, abstractmethod
 import logging
 import random
 import string
+import threading
 from time import sleep
-from queue_managers import get_message_subject, set_manager, subscribe
+from queue_managers import get_message_subject, get_manager, subscribe
 from workers.manager.port import PortManager
 
 
@@ -20,6 +21,14 @@ class Worker(object):
 
     def __init__(self, worker_conf, worker_env,
                  local_persistence, send_method):
+        """
+        Worker skeleton
+        :param worker_conf: dict containing the configuration
+        :param worker_env: dict containing the configurable environment
+        :param local_persistence: local instance manger
+        :param send_method: messaging communication method
+        :return: -
+        """
         logging.debug('Worker initialization')
         self.shutdown = False
         self.publish = send_method
@@ -40,9 +49,9 @@ class Worker(object):
         """
         logging.debug('Worker started')
         self.worker['available'] = True
-        set_manager(queue=['info', self.worker['name']])
+        get_manager(queue=['info', self.worker['name']])
         subscribe(self.worker['name'], self._dispatch)
-        self._publish_information()
+        self.run()
 
     def stop(self, signal, stack):
         """
@@ -56,7 +65,19 @@ class Worker(object):
         self._publish_type()
         self.shutdown = True
 
-    def _publish_information(self):
+    @abstractmethod
+    def create_instance(self, message):
+        pass
+
+    @abstractmethod
+    def delete_instance(self, message):
+        pass
+
+    @abstractmethod
+    def _publish_updates(self):
+        pass
+
+    def run(self):
         while not self.shutdown:
             logging.info('Publishing type and status updates: %s',
                          self.worker['name'])
@@ -89,7 +110,7 @@ class Worker(object):
     def _create_instance_env(self):
         """
         Merge the worker env with the incarnation of the instance
-        :return: list containing key=value pairs send to docker
+        :return: list containing key=value pairs send to instance
         """
         worker_env = self.worker['environment']
         instance_env = []
@@ -100,10 +121,6 @@ class Worker(object):
                 instance_env.append(key + '=' + worker_env[key])
         logging.debug('Current environment for VM: %s', instance_env)
         return instance_env
-
-    @abstractmethod
-    def _publish_updates(self):
-        pass
 
 
 def _create_worker_env(worker_env):

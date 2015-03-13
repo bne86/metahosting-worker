@@ -1,5 +1,6 @@
 import logging
 import time
+
 from workers.manager.persistence import INSTANCE_STATUS
 from workers import Worker
 
@@ -8,11 +9,11 @@ class DummyWorker(Worker):
     def __init__(self, worker_conf, worker_env,
                  local_persistence, send_method):
         """
-        Call super-class constructor for common configuration items and
-        then do the docker-specific setup
+        Call super-class constructor for common configuration items
         :param worker_conf: dict containing the configuration
         :param worker_env: dict containing the configurable environment
-        :param local_persistence: storage backend for worker-local instances
+        :param local_persistence: local instance manger
+        :param send_method: messaging communication method
         :return: -
         """
         logging.debug('DummyWorker initialization')

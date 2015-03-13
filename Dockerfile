@@ -4,9 +4,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install wget python
    apt-get clean autoclean && apt-get autoremove && \
    rm -rf /var/lib/{apt,dpkg,cache,log}
 RUN mkdir /app
-WORKDIR /app
-ADD requirements.txt /app/
-RUN pip install -r requirements.txt
 ADD . /app/
-WORKDIR /app/
+WORKDIR /app
+RUN pip install -r requirements.txt
 CMD /app/run.py --config config.ini

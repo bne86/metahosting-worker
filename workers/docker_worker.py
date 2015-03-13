@@ -2,6 +2,7 @@ from docker.client import Client
 from docker.tls import TLSConfig
 import docker.errors
 import logging
+from urlbuilders import GenericUrlBuilder
 from workers.instance_management import INSTANCE_STATUS
 from workers.worker import Worker
 
@@ -26,6 +27,11 @@ class DockerWorker(Worker):
                              version=self.worker_conf['client_version'],
                              tls=DockerWorker._get_tls(worker_conf))
         self._initialize_image()
+        url_formatting_string = self.worker_conf['formatting_string']
+        if url_formatting_string is None:
+            self.url_builder = None
+        else:
+            self.url_builder = GenericUrlBuilder(url_formatting_string)
 
         allowed_ports_ports = []
         for item in range(int(self.worker_conf['portrange_count'])):
@@ -49,8 +55,10 @@ class DockerWorker(Worker):
             self.docker.start(container, port_bindings=port_mapping)
             instance['local'] = container
             instance['environment'] = environment
-            instance['connection'] = self._get_connection_details(
-                container['Id'])
+            instance['connection'] = self._extract_connection(container)
+            url = self._extract_url(container)
+            if url:
+                instance['url'] = url
             self.instances.update_instance_status(instance=instance,
                                                   status=
                                                   INSTANCE_STATUS.STARTING)
@@ -198,4 +206,6 @@ class DockerWorker(Worker):
         return ports
 
     def _extract_url(self, container):
-        pass
+        if self.url_builder is None:
+            return None
+        return self.url_builder.build(self._extract_connection(container))

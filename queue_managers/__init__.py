@@ -6,7 +6,7 @@ from queue_managers.rabbit import BlockingPikaManager
 manager = None
 
 
-def set_manager(queue=None):
+def get_manager(queue=None):
     config = get_configuration('messaging') or {'host': 'localhost',
                                                 'port': 5672,
                                                 'user': 'guest',
@@ -18,12 +18,6 @@ def set_manager(queue=None):
                                       user=config['user'],
                                       password=config['pass'],
                                       queue=queue)
-
-
-def get_manager():
-    global manager
-    if not manager:
-        set_manager()
     return manager
 
 

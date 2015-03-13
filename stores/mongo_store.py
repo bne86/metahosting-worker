@@ -9,10 +9,9 @@ class MongoStore(AbstractKVStore):
             self.get_property('host'),
             self.get_property('port'),
             self.get_property('database'))
-
         return self._initialize_connection(url)
 
-    @retry(wait_exponential_multiplier=1000, wait_exponential_max=10000)
+    @retry(stop_max_attempt_number=10, wait_fixed=1000)
     def _initialize_connection(self, url):
         client = MongoClient(host=url)
         return client[

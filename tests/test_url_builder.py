@@ -5,7 +5,6 @@ from urlbuilders import neo_builder, exist_builder, url_builder_filter, \
 import os
 from furl import furl
 
-
 def load_container(name):
     with open(os.path.join('./containers', name)) as ff:
         container = json.load(ff)[0]
@@ -52,4 +51,3 @@ class RabbitTest(unittest.TestCase):
         self.assertEqual(url.port, 49153)
         self.assertEqual(url.scheme, 'http')
         self.assertEqual(url.path, '/exist/')
-

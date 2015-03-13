@@ -1,0 +1,104 @@
+[{
+    "Args": [
+        "-c",
+        "/entrypoint.sh"
+    ],
+    "Config": {
+        "AttachStderr": false,
+        "AttachStdin": false,
+        "AttachStdout": false,
+        "Cmd": null,
+        "CpuShares": 0,
+        "Cpuset": "",
+        "Domainname": "",
+        "Entrypoint": [
+            "/bin/sh",
+            "-c",
+            "/entrypoint.sh"
+        ],
+        "Env": [
+            "EXIST_ADMIN_PASSWORD=blah",
+            "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+        ],
+        "ExposedPorts": {
+            "8080/tcp": {}
+        },
+        "Hostname": "3cad6584dea1",
+        "Image": "dariah/exist:latest",
+        "Memory": 0,
+        "MemorySwap": 0,
+        "NetworkDisabled": false,
+        "OnBuild": null,
+        "OpenStdin": false,
+        "PortSpecs": null,
+        "StdinOnce": false,
+        "Tty": false,
+        "User": "exist",
+        "Volumes": {
+            "/opt/exist/webapp/WEB-INF/data/": {}
+        },
+        "WorkingDir": ""
+    },
+    "Created": "2015-03-13T07:04:35.410948419Z",
+    "Driver": "aufs",
+    "ExecDriver": "native-0.2",
+    "HostConfig": {
+        "Binds": null,
+        "ContainerIDFile": "",
+        "Dns": null,
+        "DnsSearch": null,
+        "Links": null,
+        "LxcConf": [],
+        "NetworkMode": "bridge",
+        "PortBindings": {
+            "8080/tcp": [
+                {
+                    "HostIp": "0.0.0.0",
+                    "HostPort": "49153"
+                }
+            ]
+        },
+        "Privileged": false,
+        "PublishAllPorts": true,
+        "VolumesFrom": null
+    },
+    "HostnamePath": "/var/lib/docker/containers/3cad6584dea1361697b8f3c20868708eba69b4e4bb19a1d02b83808506a32178/hostname",
+    "HostsPath": "/var/lib/docker/containers/3cad6584dea1361697b8f3c20868708eba69b4e4bb19a1d02b83808506a32178/hosts",
+    "Id": "3cad6584dea1361697b8f3c20868708eba69b4e4bb19a1d02b83808506a32178",
+    "Image": "ba76d194e42c1e20fae9ac7fce742ea5d4d4c82bdc1d1517ee3bc2549bfd2571",
+    "MountLabel": "",
+    "Name": "/jolly_hoover",
+    "NetworkSettings": {
+        "Bridge": "docker0",
+        "Gateway": "172.17.42.1",
+        "IPAddress": "172.17.0.4",
+        "IPPrefixLen": 16,
+        "PortMapping": null,
+        "Ports": {
+            "8080/tcp": [
+                {
+                    "HostIp": "0.0.0.0",
+                    "HostPort": "49153"
+                }
+            ]
+        }
+    },
+    "Path": "/bin/sh",
+    "ProcessLabel": "",
+    "ResolvConfPath": "/etc/resolv.conf",
+    "State": {
+        "ExitCode": 0,
+        "FinishedAt": "0001-01-01T00:00:00Z",
+        "Paused": false,
+        "Pid": 4834,
+        "Running": true,
+        "StartedAt": "2015-03-13T07:04:35.51096107Z"
+    },
+    "Volumes": {
+        "/opt/exist/webapp/WEB-INF/data": "/var/lib/docker/vfs/dir/2224d55a4f0513336fa4210838f22c692de021f87a7b65a038f590b335f8b83f"
+    },
+    "VolumesRW": {
+        "/opt/exist/webapp/WEB-INF/data": true
+    }
+}
+]

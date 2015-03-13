@@ -2,6 +2,7 @@ from docker.client import Client
 from docker.tls import TLSConfig
 import docker.errors
 import logging
+from urlbuilders import GenericUrlBuilder
 from workers.manager.persistence import INSTANCE_STATUS
 from workers import Worker
 
@@ -27,6 +28,7 @@ class DockerWorker(Worker):
         if 'disable_https_warnings' in worker_conf \
                 and 'https' in worker_conf['base_url']:
             import requests.packages.urllib3
+
             requests.packages.urllib3.disable_warnings()
 
         self.docker = Client(base_url=self.worker_conf['base_url'],
@@ -34,6 +36,12 @@ class DockerWorker(Worker):
                              tls=_get_tls(worker_conf))
         self._initialize_image()
         self._get_associated_ports()
+
+        if 'formatting_string' in self.worker_conf:
+            self.url_builder = GenericUrlBuilder(self.worker_conf[
+                'formatting_string'])
+        else:
+            self.url_builder = None
 
     @Worker._callback('create_instance')
     def create_instance(self, message):
@@ -52,7 +60,11 @@ class DockerWorker(Worker):
             instance['local'] = container
             instance['environment'] = environment
             instance['connection'] = \
-                self._get_container_connectivity(container['Id'])
+                self._get_container_connectivity(container)
+            url = self._get_url(container)
+            if url:
+                instance['url'] = url
+
             self.local_persistence.update_instance_status(
                 instance=instance,
                 status=INSTANCE_STATUS.STARTING)
@@ -80,7 +92,7 @@ class DockerWorker(Worker):
             status=INSTANCE_STATUS.DELETED)
 
     def _initialize_image(self):
-        logging.info('Managing image %s', self.worker_conf['image'])
+        logging.info('Initializing image %s', self.worker_conf['image'])
         self.worker['image'] = self.worker_conf['image']
         tmp = self.worker['image'].split(':')
         if len(tmp) == 2:
@@ -103,8 +115,8 @@ class DockerWorker(Worker):
             logging.debug('Not able to get container %s', container_id)
             return False
 
-    def _get_container_connectivity(self, container_id):
-        ports = self._get_container(container_id)['NetworkSettings']['Ports']
+    def _get_container_connectivity(self, container):
+        ports = container['NetworkSettings']['Ports']
         if ports:
             if 'ip' in self.worker_conf.keys():
                 for port in ports:
@@ -113,17 +125,20 @@ class DockerWorker(Worker):
         else:
             return False
 
+    def _get_url(self, container):
+        if self.url_builder is None:
+            return None
+        return self.url_builder.build(
+            self._get_container_connectivity(container))
+
     def _publish_updates(self):
-        """
-        updates instance status to docker status.
-        :return:
-        """
         instances = self.local_persistence.get_instances()
         for instance_id in instances.keys():
-            if instances[instance_id]['status'] == INSTANCE_STATUS.DELETED or \
-                    instances[instance_id]['status'] == INSTANCE_STATUS.FAILED:
+            if instances[instance_id]['status'] in [INSTANCE_STATUS.DELETED,
+                                                    INSTANCE_STATUS.FAILED]:
                 self.local_persistence.publish_instance(instance_id)
                 continue
+
             container_id = self._get_container_id(instance_id)
             container = self._get_container(container_id)
             if not container_id or not container:
@@ -135,8 +150,12 @@ class DockerWorker(Worker):
 
             if _is_running(container):
                 connection_details = \
-                    self._get_container_connectivity(container_id)
+                    self._get_container_connectivity(container)
                 instances[instance_id]['connection'] = connection_details
+                url = self._get_url(container)
+                if url:
+                    instances[instance_id]['url'] = url
+
                 self.local_persistence.update_instance_status(
                     instances[instance_id],
                     INSTANCE_STATUS.RUNNING)
@@ -158,7 +177,6 @@ class DockerWorker(Worker):
         """
         get all containers, that have not been stopped, they may have been
         started from outside of the workers scope.
-        :param ports: ports for the new container
         :return: array with ports to use, None if not enough ports available
         """
         used_ports = set()
@@ -168,9 +186,6 @@ class DockerWorker(Worker):
             for port in _container_used_ports(tmp):
                 used_ports.add(port)
         self.port_manager.update_used_ports(used_ports)
-
-    def _extract_connection(self, container):
-        pass
 
 
 def _container_used_ports(container):

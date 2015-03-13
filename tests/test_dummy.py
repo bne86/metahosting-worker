@@ -1,7 +1,7 @@
 from mock import Mock
 from workers.dummy_worker import DummyWorker
 import unittest
-from workers.instance_management import INSTANCE_STATUS
+from workers.manager.persistence import INSTANCE_STATUS
 
 
 class DummyWorkerTest(unittest.TestCase):
@@ -10,7 +10,7 @@ class DummyWorkerTest(unittest.TestCase):
         self.send_method = Mock()
         config = {'worker': {'name': 'dummyTest',
                              'description': 'foo bar bar'}}
-        self.worker = DummyWorker(config=config,
+        self.worker = DummyWorker(worker_conf=config, worker_env=None,
                                   local_persistence=self.instance_manager,
                                   send_method=self.send_method)
 

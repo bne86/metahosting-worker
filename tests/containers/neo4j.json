@@ -1,0 +1,110 @@
+[{
+    "Args": [
+        "-c",
+        "/neo4j/bin/neo4j start-no-wait \u0026\u0026 tail -f /neo4j/data/log/*.log"
+    ],
+    "Config": {
+        "AttachStderr": false,
+        "AttachStdin": false,
+        "AttachStdout": false,
+        "Cmd": [
+            "/bin/sh",
+            "-c",
+            "/neo4j/bin/neo4j start-no-wait \u0026\u0026 tail -f /neo4j/data/log/*.log"
+        ],
+        "CpuShares": 0,
+        "Cpuset": "",
+        "Domainname": "",
+        "Entrypoint": null,
+        "Env": [
+            "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+        ],
+        "ExposedPorts": {
+            "7473/tcp": {},
+            "7474/tcp": {}
+        },
+        "Hostname": "61ed6e3377b8",
+        "Image": "dariah/neo4j:latest",
+        "Memory": 0,
+        "MemorySwap": 0,
+        "NetworkDisabled": false,
+        "OnBuild": null,
+        "OpenStdin": false,
+        "PortSpecs": null,
+        "StdinOnce": false,
+        "Tty": false,
+        "User": "",
+        "Volumes": null,
+        "WorkingDir": ""
+    },
+    "Created": "2015-03-12T20:16:52.16567346Z",
+    "Driver": "aufs",
+    "ExecDriver": "native-0.2",
+    "HostConfig": {
+        "Binds": null,
+        "ContainerIDFile": "",
+        "Dns": null,
+        "DnsSearch": null,
+        "Links": null,
+        "LxcConf": [],
+        "NetworkMode": "bridge",
+        "PortBindings": {
+            "7473/tcp": [
+                {
+                    "HostIp": "0.0.0.0",
+                    "HostPort": "49153"
+                }
+            ],
+            "7474/tcp": [
+                {
+                    "HostIp": "0.0.0.0",
+                    "HostPort": "49154"
+                }
+            ]
+        },
+        "Privileged": false,
+        "PublishAllPorts": true,
+        "VolumesFrom": null
+    },
+    "HostnamePath": "/var/lib/docker/containers/61ed6e3377b89f036f571a18eb17d5a623ca45be5df93c3ee86feb1f427a7560/hostname",
+    "HostsPath": "/var/lib/docker/containers/61ed6e3377b89f036f571a18eb17d5a623ca45be5df93c3ee86feb1f427a7560/hosts",
+    "Id": "61ed6e3377b89f036f571a18eb17d5a623ca45be5df93c3ee86feb1f427a7560",
+    "Image": "8f8ca20b5652fd45ded3dafb3b059e572016e2d2c93a5122aa31955fa1769a9d",
+    "MountLabel": "",
+    "Name": "/hopeful_colden",
+    "NetworkSettings": {
+        "Bridge": "docker0",
+        "Gateway": "172.17.42.1",
+        "IPAddress": "172.17.0.2",
+        "IPPrefixLen": 16,
+        "PortMapping": null,
+        "Ports": {
+            "7473/tcp": [
+                {
+                    "HostIp": "0.0.0.0",
+                    "HostPort": "49153"
+                }
+            ],
+            "7474/tcp": [
+                {
+                    "HostIp": "0.0.0.0",
+                    "HostPort": "49154"
+                }
+            ]
+        }
+    },
+    "Path": "/bin/sh",
+    "ProcessLabel": "",
+    "ResolvConfPath": "/etc/resolv.conf",
+    "State": {
+        "ExitCode": 0,
+        "FinishedAt": "0001-01-01T00:00:00Z",
+        "Paused": false,
+        "Pid": 4863,
+        "Running": true,
+        "StartedAt": "2015-03-12T20:16:52.269825975Z"
+    },
+    "Volumes": {},
+    "VolumesRW": {}
+}
+]

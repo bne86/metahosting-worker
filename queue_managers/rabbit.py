@@ -53,10 +53,6 @@ class BlockingPikaManager(object):
         if not self.thread.is_alive():
             self.thread.start()
 
-    def unsubscribe(self, routing_key, listener):
-        # self.channel.basic_cancel(consumer_tag=listener.__name__)
-        raise NotImplementedError
-
     def disconnect(self):
         if self.connection.is_open:
             self.connection.close()

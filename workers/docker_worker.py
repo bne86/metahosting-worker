@@ -28,7 +28,6 @@ class DockerWorker(Worker):
         if 'disable_https_warnings' in worker_conf \
                 and 'https' in worker_conf['base_url']:
             import requests.packages.urllib3
-
             requests.packages.urllib3.disable_warnings()
 
         self.docker = Client(base_url=self.worker_conf['base_url'],
@@ -55,15 +54,14 @@ class DockerWorker(Worker):
             container = self.docker.create_container(self.worker['image'],
                                                      environment=environment,
                                                      ports=ports_required)
-
             self.docker.start(container, port_bindings=port_mapping)
             instance['local'] = container
             instance['environment'] = environment
             instance['connection'] = \
-                self._get_container_connectivity(container)
-            url = self._get_url(container)
-            if url:
-                instance['url'] = url
+                self._get_container_connectivity(container['Id'])
+            urls = self._get_urls(container['Id'])
+            if urls:
+                instance['url'] = urls
 
             self.local_persistence.update_instance_status(
                 instance=instance,
@@ -106,30 +104,35 @@ class DockerWorker(Worker):
                 self.local_persistence.get_instance(instance_id)['local']['Id']
         except (KeyError, TypeError):
             logging.debug('Container for instance %s not found', instance_id)
-            return False
+            return None
 
     def _get_container(self, container_id):
         try:
             return self.docker.inspect_container({'Id': container_id})
         except docker.errors.APIError:
             logging.debug('Not able to get container %s', container_id)
-            return False
+            return None
 
-    def _get_container_connectivity(self, container):
-        ports = container['NetworkSettings']['Ports']
+    def _get_container_connectivity(self, container_id):
+        try:
+            ports = self._get_container(
+                container_id)['NetworkSettings']['Ports']
+        except TypeError:
+            logging.debug('Cannot get ports for container_id %s', container_id)
+            ports = None
         if ports:
             if 'ip' in self.worker_conf.keys():
                 for port in ports:
                     ports[port][0][u'HostIp'] = unicode(self.worker_conf['ip'])
             return ports
         else:
-            return False
+            return None
 
-    def _get_url(self, container):
+    def _get_urls(self, container_id):
         if self.url_builder is None:
             return None
         return self.url_builder.build(
-            self._get_container_connectivity(container))
+            self._get_container_connectivity(container_id))
 
     def _publish_updates(self):
         instances = self.local_persistence.get_instances()
@@ -150,9 +153,9 @@ class DockerWorker(Worker):
 
             if _is_running(container):
                 connection_details = \
-                    self._get_container_connectivity(container)
+                    self._get_container_connectivity(container_id)
                 instances[instance_id]['connection'] = connection_details
-                url = self._get_url(container)
+                url = self._get_urls(container_id)
                 if url:
                     instances[instance_id]['url'] = url
 

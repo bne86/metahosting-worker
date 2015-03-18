@@ -34,7 +34,7 @@ class DockerWorker(Worker):
                              version=self.worker_conf['client_version'],
                              tls=_get_tls(worker_conf))
         self._initialize_image()
-        self._get_associated_ports()
+        self._get_allocated_ports()
 
         if 'formatting_string' in self.worker_conf:
             self.url_builder = GenericUrlBuilder(self.worker_conf[
@@ -55,11 +55,11 @@ class DockerWorker(Worker):
                                                      environment=environment,
                                                      ports=ports_required)
             self.docker.start(container, port_bindings=port_mapping)
-            instance['local'] = container
+            instance['container_id'] = container['Id']
             instance['environment'] = environment
             instance['connection'] = \
-                self._get_container_connectivity(container['Id'])
-            urls = self._get_urls(container['Id'])
+                self._get_container_connectivity(instance['container_id'])
+            urls = self._get_urls(instance['container_id'])
             if urls:
                 instance['url'] = urls
 
@@ -75,8 +75,7 @@ class DockerWorker(Worker):
     def delete_instance(self, message):
         instance = message.copy()
         logging.info('Deleting instance id: %s', instance['id'])
-        container_id = self._get_container_id(instance_id=instance['id'])
-        container = self._get_container(container_id=container_id)
+        container = self._get_container(container_id=instance['container_id'])
         if not container:
             logging.debug('Container does not exist, not stopping it')
             return
@@ -97,14 +96,6 @@ class DockerWorker(Worker):
             self.docker.import_image(image=tmp[0], tag=tmp[1])
         else:
             self.docker.import_image(image=tmp)
-
-    def _get_container_id(self, instance_id):
-        try:
-            return \
-                self.local_persistence.get_instance(instance_id)['local']['Id']
-        except (KeyError, TypeError):
-            logging.debug('Container for instance %s not found', instance_id)
-            return None
 
     def _get_container(self, container_id):
         try:
@@ -142,7 +133,7 @@ class DockerWorker(Worker):
                 self.local_persistence.publish_instance(instance_id)
                 continue
 
-            container_id = self._get_container_id(instance_id)
+            container_id = instances[instance_id]['container_id']
             container = self._get_container(container_id)
             if not container_id or not container:
                 instances[instance_id].pop('connection', None)
@@ -167,6 +158,7 @@ class DockerWorker(Worker):
                 self.local_persistence.update_instance_status(
                     instances[instance_id],
                     INSTANCE_STATUS.STOPPED)
+        self._get_allocated_ports()
 
     def _get_image_ports(self, image):
         logging.debug('Extracting ports from image')
@@ -176,7 +168,7 @@ class DockerWorker(Worker):
             ports.append(port.split('/')[0])
         return ports
 
-    def _get_associated_ports(self):
+    def _get_allocated_ports(self):
         """
         get all containers, that have not been stopped, they may have been
         started from outside of the workers scope.

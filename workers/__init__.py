@@ -2,9 +2,8 @@ from abc import ABCMeta, abstractmethod
 import logging
 import random
 import string
-import threading
 from time import sleep
-from queue_managers import get_message_subject, get_manager, subscribe
+from queue_managers import get_message_subject, set_manager, subscribe
 from workers.manager.port import PortManager
 
 
@@ -49,7 +48,7 @@ class Worker(object):
         """
         logging.debug('Worker started')
         self.worker['available'] = True
-        get_manager(queue=['info', self.worker['name']])
+        set_manager(queues=['info', self.worker['name']])
         subscribe(self.worker['name'], self._dispatch)
         self.run()
 

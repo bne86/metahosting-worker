@@ -1,43 +1,43 @@
 from furl import furl
 
-NEO_URL_FORMAT = 'http://localhost:7474'
-EXIST_URL_FORMAT = 'http://localhost:8080'
-
-
-def get_port_mapping(container):
-    return container['NetworkSettings']['Ports']
-
 
 class GenericUrlBuilder(object):
 
-    def __init__(self, url_formatting_string):
-        self.target_url = furl(url_formatting_string)
-        self.modified_url = self.target_url.copy()
-
-    def substitute_host(self, port, port_mapping):
-        # {u'HostIp': u'0.0.0.0', u'HostPort': u'49154'}
-        mp = port_mapping[port][0]
-        self.modified_url.port = int(mp['HostPort'])
-        self.modified_url.host = mp['HostIp']
+    def __init__(self, worker_conf):
+        """
+        use a url template to create services URLs based on the container
+        networking config
+        :param worker_conf: dict containing the worker config
+        :return:
+        """
+        self.service_url = dict()
+        if 'formatting_string' in worker_conf:
+            for url in worker_conf['formatting_string'].split(';'):
+                self.service_url[url] = furl(url)
 
     def build(self, port_mapping):
-        port = '%s/tcp' % self.target_url.port
-        self.substitute_host(port, port_mapping)
-        return '%s' % self.modified_url
-
-
-def neo_builder(container):
-    b = GenericUrlBuilder(NEO_URL_FORMAT)
-    return b.build(get_port_mapping(container))
-
-
-def exist_builder(container):
-    b = GenericUrlBuilder(EXIST_URL_FORMAT)
-    return b.build(get_port_mapping(container))
-
-
-def url_builder_filter(container, url_formatting_string=None):
-    if url_formatting_string is None:
-        return container
-    url_builder = GenericUrlBuilder(url_formatting_string)
-    container['url'] = url_builder.build(get_port_mapping(container))
+        """
+        :param port_mapping: a docker port mapping(container[][], e.g.
+        {u'15672/tcp': [{u'HostPort': u'7000', u'HostIp': u'192.168.59.103'}],
+        u'5672/tcp': [{u'HostPort': u'7001', u'HostIp': u'192.168.59.103'}]}
+        :return: list of urls
+        """
+        urls = list()
+        for internal_port in port_mapping.keys():
+            for index, unused in enumerate(port_mapping[internal_port]):
+                endpoint = port_mapping[internal_port][index]
+                port, proto = internal_port.split('/')
+                tmp_url = None
+                'if our internal url is part of a formatting template, use it'
+                for item in self.service_url.keys():
+                    if int(port) == self.service_url[item].port:
+                        tmp_url = self.service_url[item].copy()
+                        tmp_url.port = int(endpoint['HostPort'])
+                        tmp_url.host = endpoint['HostIp']
+                        break
+                'otherwise we create a url with http(most often default?)'
+                if not tmp_url:
+                    tmp_url = furl('http://{}:{}'.format(
+                        endpoint['HostIp'], endpoint['HostPort']))
+                urls.append(str(tmp_url))
+        return urls

@@ -23,6 +23,7 @@ class PortManager():
         return acquired_ports
 
     def release_ports(self, ports):
+        logging.debug('Releasing ports %s', str(ports))
         for port in ports:
             try:
                 self.used_ports.remove(port)

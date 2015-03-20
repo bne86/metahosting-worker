@@ -1,10 +1,16 @@
 from abc import ABCMeta, abstractmethod
+from collections import namedtuple
 import logging
 import random
 import string
 from time import sleep
 from queue_managers import get_message_subject, set_manager, subscribe
+from urlbuilders import GenericUrlBuilder
 from workers.manager.port import PortManager
+
+STATE = namedtuple('state', ['AVAILABLE', 'SHUTOFF', 'NO_RESOURCES'])
+WORKER_STATUS = STATE('worker available', 'worker in planned shutoff',
+                      'worker available but not enough resources left')
 
 
 def get_random_key(length=16):
@@ -29,6 +35,12 @@ class Worker(object):
         :return: -
         """
         logging.debug('Worker initialization')
+
+        if 'disable_https_warnings' in worker_conf \
+                and 'https' in worker_conf['base_url']:
+            import requests.packages.urllib3
+            requests.packages.urllib3.disable_warnings()
+
         self.shutdown = False
         self.publish = send_method
         self.worker_conf = worker_conf
@@ -39,6 +51,7 @@ class Worker(object):
         self.worker['description'] = worker_conf['description']
         self.worker['environment'] = _create_worker_env(worker_env)
         self.port_manager = PortManager(worker_conf)
+        self.url_builder = GenericUrlBuilder(worker_conf)
 
     def start(self):
         """
@@ -47,7 +60,7 @@ class Worker(object):
         :return:
         """
         logging.debug('Worker started')
-        self.worker['available'] = True
+        self.worker['status'] = WORKER_STATUS.AVAILABLE
         set_manager(queues=['info', self.worker['name']])
         subscribe(self.worker['name'], self._dispatch)
         self.run()
@@ -60,7 +73,7 @@ class Worker(object):
         :return:
         """
         logging.debug('Worker stopped with signal %s, %s', signal, stack)
-        self.worker['available'] = False
+        self.worker['status'] = WORKER_STATUS.SHUTOFF
         self._publish_type()
         self.shutdown = True
 
@@ -122,7 +135,7 @@ class Worker(object):
         return instance_env
 
 
-def _create_worker_env(worker_env):
+def _create_worker_env(worker_env=None):
     environment = dict()
     if worker_env:
         for item in worker_env.keys():

@@ -1,0 +1,139 @@
+{
+  "State": {
+    "Pid": 28176,
+    "OOMKilled": false,
+    "Paused": false,
+    "Running": true,
+    "FinishedAt": "0001-01-01T00:00:00Z",
+    "Restarting": false,
+    "Error": "",
+    "StartedAt": "2015-03-19T12:48:13.221629957Z",
+    "ExitCode": 0
+  },
+  "Config": {
+    "Env": [
+      "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+      "HOME=/root",
+      "RABBITMQ_LOG_BASE=/data/log",
+      "RABBITMQ_MNESIA_BASE=/data/mnesia"
+    ],
+    "Hostname": "ce67a71d6d2d",
+    "Entrypoint": null,
+    "PortSpecs": null,
+    "Memory": 0,
+    "OnBuild": null,
+    "OpenStdin": false,
+    "MacAddress": "",
+    "Cpuset": "",
+    "User": "",
+    "CpuShares": 0,
+    "AttachStdout": true,
+    "NetworkDisabled": false,
+    "WorkingDir": "/data",
+    "Cmd": ["rabbitmq-start"],
+    "StdinOnce": false,
+    "AttachStdin": false,
+    "MemorySwap": 0,
+    "Volumes": {
+      "/data/log": {},
+      "/data/mnesia": {}
+    },
+    "Tty": false,
+    "AttachStderr": true,
+    "Domainname": "",
+    "Image": "dockerfile/rabbitmq:latest",
+    "ExposedPorts": {
+      "15672/tcp": {},
+      "5672/tcp": {}
+    }
+  },
+  "HostsPath": "/mnt/sda1/var/lib/docker/containers/ce67a71d6d2d026c45658e9e23e55c4144357dfdc70b59e05184a12bd32ce887/hosts",
+  "Args": [],
+  "Driver": "aufs",
+  "ExecDriver": "native-0.2",
+  "Path": "rabbitmq-start",
+  "HostnamePath": "/mnt/sda1/var/lib/docker/containers/ce67a71d6d2d026c45658e9e23e55c4144357dfdc70b59e05184a12bd32ce887/hostname",
+  "VolumesRW": {
+    "/data/log": true,
+    "/data/mnesia": true
+  },
+  "RestartCount": 0,
+  "Name": "/angry_heisenberg",
+  "Created": "2015-03-19T12:48:12.749092339Z",
+  "ResolvConfPath": "/mnt/sda1/var/lib/docker/containers/ce67a71d6d2d026c45658e9e23e55c4144357dfdc70b59e05184a12bd32ce887/resolv.conf",
+  "Volumes": {
+    "/data/log": "/mnt/sda1/var/lib/docker/vfs/dir/605801d20de18c541e638bfdafdfa888c0e13aa8ed78dc0dfdcf7267bc96b60a",
+    "/data/mnesia": "/mnt/sda1/var/lib/docker/vfs/dir/6344d4867378dd096dbbd260b3a18b90ef5581a912598b23af6b26201fdf4e10"
+  },
+  "ExecIDs": null,
+  "ProcessLabel": "",
+  "NetworkSettings": {
+    "Bridge": "docker0",
+    "GlobalIPv6PrefixLen": 0,
+    "LinkLocalIPv6Address": "fe80::42:acff:fe11:ac",
+    "GlobalIPv6Address": "",
+    "IPv6Gateway": "",
+    "PortMapping": null,
+    "IPPrefixLen": 16,
+    "LinkLocalIPv6PrefixLen": 64,
+    "MacAddress": "02:42:ac:11:00:ac",
+    "IPAddress": "172.17.0.172",
+    "Gateway": "172.17.42.1",
+    "Ports": {
+      "15672/tcp": [
+        {
+          "HostPort": "7000",
+          "HostIp": "0.0.0.0"
+        }
+      ],
+      "5672/tcp": [
+        {
+          "HostPort": "7001",
+          "HostIp": "0.0.0.0"
+        }
+      ]
+    }
+  },
+  "AppArmorProfile": "",
+  "Image": "b21a6dbc8fef167e7b7da54bf8031ad7d7c6e1f06f0466284409725f69d07047",
+  "HostConfig": {
+    "CapDrop": null,
+    "PortBindings": {
+      "15672/tcp": [
+        {
+          "HostPort": "7000",
+          "HostIp": ""
+        }
+      ],
+      "5672/tcp": [
+        {
+          "HostPort": "7001",
+          "HostIp": ""
+        }
+      ]
+    },
+    "NetworkMode": "",
+    "SecurityOpt": null,
+    "Links": null,
+    "IpcMode": "",
+    "LxcConf": null,
+    "ContainerIDFile": "",
+    "Devices": null,
+    "CapAdd": null,
+    "Binds": null,
+    "RestartPolicy": {
+      "MaximumRetryCount": 0,
+      "Name": ""
+    },
+    "PublishAllPorts": false,
+    "Dns": null,
+    "PidMode": "",
+    "ExtraHosts": null,
+    "DnsSearch": null,
+    "Privileged": false,
+    "VolumesFrom": null,
+    "ReadonlyRootfs": false
+  },
+  "Id": "ce67a71d6d2d026c45658e9e23e55c4144357dfdc70b59e05184a12bd32ce887",
+  "MountLabel": ""
+}

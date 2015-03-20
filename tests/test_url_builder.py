@@ -1,9 +1,12 @@
 import json
 import unittest
-from urlbuilders import neo_builder, exist_builder, url_builder_filter, \
-    NEO_URL_FORMAT, EXIST_URL_FORMAT
 import os
 from furl import furl
+
+NEO_URL_FORMAT = 'http://localhost:7474'
+EXIST_URL_FORMAT = 'http://localhost:8080/exist'
+RABBIT_URL_FORMAT = 'amqp://localhost:5672;http://localhost:15672'
+
 
 def load_container(name):
     with open(os.path.join('./containers', name)) as ff:
@@ -12,10 +15,11 @@ def load_container(name):
     return container
 
 
-class RabbitTest(unittest.TestCase):
+class TestGenericUrlBuilder(unittest.TestCase):
     def setUp(self):
         self.neo_container = load_container('neo4j.json')
         self.exist_container = load_container('exist.json')
+        self.rabbit_container = load_container('rabbit.json')
 
     def tearDown(self):
         pass
@@ -41,13 +45,3 @@ class RabbitTest(unittest.TestCase):
         self.assertEqual(url.host, '0.0.0.0')
         self.assertEqual(url.port, 49154)
         self.assertEqual(url.scheme, 'http')
-
-    def test_url_builder_filter_exist(self):
-        self.assertFalse('url' in self.exist_container)
-        res = url_builder_filter(self.exist_container, EXIST_URL_FORMAT)
-        self.assertTrue('url' in self.exist_container)
-        url = furl(self.exist_container['url'])
-        self.assertEqual(url.host, '0.0.0.0')
-        self.assertEqual(url.port, 49153)
-        self.assertEqual(url.scheme, 'http')
-        self.assertEqual(url.path, '/exist/')

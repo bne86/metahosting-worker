@@ -37,6 +37,7 @@ class Worker(object):
         logging.debug('Worker initialization')
 
         if 'disable_https_warnings' in worker_conf \
+                and 'base_url' in worker_conf \
                 and 'https' in worker_conf['base_url']:
             import requests.packages.urllib3
             requests.packages.urllib3.disable_warnings()

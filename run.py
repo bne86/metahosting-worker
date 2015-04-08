@@ -5,7 +5,7 @@ import config_manager
 import importlib
 import logging
 import signal
-from workers.manager.persistence import LocalInstanceManager
+from workers.manager.persistence import PersistenceManager
 from queue_managers import send_message
 
 
@@ -40,7 +40,7 @@ def run():
     if args.config:
         config_manager._CONFIG_FILE = args.config
 
-    local_persistence = LocalInstanceManager(
+    local_persistence = PersistenceManager(
         config=config_manager.get_configuration('local_persistence'),
         send_method=send_message)
 

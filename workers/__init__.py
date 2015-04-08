@@ -8,9 +8,8 @@ from queue_managers import get_message_subject, set_manager, subscribe
 from urlbuilders import GenericUrlBuilder
 from workers.manager.port import PortManager
 
-STATE = namedtuple('state', ['AVAILABLE', 'SHUTOFF', 'NO_RESOURCES'])
-WORKER_STATUS = STATE('worker available', 'worker in planned shutoff',
-                      'worker available but not enough resources left')
+STATE = namedtuple('state', ['OK', 'WARNING', 'CRITICAL'])
+WORKER_STATUS = STATE('ok', 'warning', 'critical')
 
 
 def get_random_key(length=16):
@@ -61,7 +60,7 @@ class Worker(object):
         :return:
         """
         logging.debug('Worker started')
-        self.worker['status'] = WORKER_STATUS.AVAILABLE
+        self.worker['status'] = WORKER_STATUS.OK
         set_manager(queues=['info', self.worker['name']])
         subscribe(self.worker['name'], self._dispatch)
         self.run()
@@ -74,7 +73,7 @@ class Worker(object):
         :return:
         """
         logging.debug('Worker stopped with signal %s, %s', signal, stack)
-        self.worker['status'] = WORKER_STATUS.SHUTOFF
+        self.worker['status'] = WORKER_STATUS.CRITICAL
         self._publish_type()
         self.shutdown = True
 

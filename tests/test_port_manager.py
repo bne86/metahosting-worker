@@ -2,6 +2,12 @@ from unittest import TestCase
 
 
 class TestPortManager(TestCase):
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
+
     def test_acquire_ports(self):
         self.fail()
 

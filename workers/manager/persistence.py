@@ -8,7 +8,7 @@ States = namedtuple('States', ['STARTING', 'DELETED', 'RUNNING', 'STOPPED',
 INSTANCE_STATUS = States('starting', 'deleted', 'running', 'stopped', 'failed')
 
 
-class LocalInstanceManager:
+class PersistenceManager:
     """
     wrapper around a store (metahosting.stores) to store instance information
     for local management.

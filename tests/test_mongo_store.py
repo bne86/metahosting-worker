@@ -5,6 +5,8 @@ __author__ = 'jj'
 
 import unittest
 
+host='localhost'
+port=27017
 url = 'mongodb://localhost:27017/metahosting_tests'
 
 
@@ -18,7 +20,8 @@ class MongoStoreTest(unittest.TestCase):
 
     def get_store(self):
         config = dict()
-        config['url'] = url
+        config['host'] = host
+        config['port'] = port
         config['database'] = 'metahosting_tests'
         config['collection'] = 'tests'
         return MongoStore(config=config)

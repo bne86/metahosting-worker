@@ -8,9 +8,9 @@ class DummyWorkerTest(unittest.TestCase):
     def setUp(self):
         self.instance_manager = Mock()
         self.send_method = Mock()
-        config = {'worker': {'name': 'dummyTest',
-                             'description': 'foo bar bar'}}
-        self.worker = DummyWorker(worker_conf=config, worker_env=None,
+        config = {'name': 'dummyTest', 'description': 'foo bar bar'}
+        self.worker = DummyWorker(worker_conf=config,
+                                  worker_env=None,
                                   local_persistence=self.instance_manager,
                                   send_method=self.send_method)
 

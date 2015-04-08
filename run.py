@@ -47,7 +47,8 @@ def run():
         import logstash
         host, port = args.logstash.split(':')
         logger.addHandler(logstash.TCPLogstashHandler(host=host,
-                                                      port=int(port)))
+                                                      port=int(port),
+                                                      version=1))
 
     local_persistence = PersistenceManager(
         config=config_manager.get_configuration('local_persistence'),

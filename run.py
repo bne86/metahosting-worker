@@ -26,6 +26,9 @@ def run():
     parser.add_argument("--debug",
                         help="get debug output",
                         action="store_true")
+    parser.add_argument("--logstash",
+                        help="log everything (in addition) to logstash "
+                             ", give host:port")
     parser.add_argument("--envfile",
                         help="provide a file that tells which not-default "
                         "environment variables to use")
@@ -33,12 +36,18 @@ def run():
                         help="provide a config file")
     args = parser.parse_args()
     logger = logging.getLogger()
+    logger.addHandler(logging.StreamHandler())
     if args.debug:
         logger.setLevel(logging.DEBUG)
     else:
         logger.setLevel(logging.INFO)
     if args.config:
         config_manager._CONFIG_FILE = args.config
+    if args.logstash:
+        import logstash
+        host, port = args.logstash.split(':')
+        logger.addHandler(logstash.TCPLogstashHandler(host=host,
+                                                      port=int(port)))
 
     local_persistence = PersistenceManager(
         config=config_manager.get_configuration('local_persistence'),

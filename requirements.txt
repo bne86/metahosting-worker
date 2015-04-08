@@ -7,3 +7,4 @@ pymongo==2.7.2
 requests==2.5.1
 retrying==1.3.3
 furl==0.4.4
+python_logstash==0.4.2

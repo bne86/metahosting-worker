@@ -2,24 +2,27 @@ import ConfigParser
 import logging
 import os
 
-_VARIABLE_NAMES = 'envvars.ini'
+_VARIABLES_FILE = 'envvars.ini'
 _CONFIG_FILE = 'config.ini'
 
 
 def get_configuration(section_name, config_file=None,
-                      variables=_VARIABLE_NAMES):
+                      variables_file=_VARIABLES_FILE):
     if not config_file:
         config_file = _CONFIG_FILE
     var_config = ConfigParser.SafeConfigParser()
-    var_config.read(variables)
+    var_config.read(variables_file)
     config = ConfigParser.SafeConfigParser()
     config.read(config_file)
-
-    config_items = config.items(section=section_name)
+    try:
+        config_items = config.items(section=section_name)
+    except ConfigParser.Error as err:
+        logging.debug('Error while reading config: %s', err)
+        return None
     try:
         env_overrides = var_config.options(section=section_name)
     except ConfigParser.NoSectionError:
-        logging.debug('var config file %s not found', variables)
+        logging.debug('var config file %s not found', variables_file)
         env_overrides = []
 
     properties = {}

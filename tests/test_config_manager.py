@@ -31,19 +31,15 @@ class FacadeTest(unittest.TestCase):
         self.config_file.unlink(self.config_file.name)
         self.env_file.unlink(self.env_file.name)
 
-    def test_not_existing_config(self):
-        configuration = get_configuration('non_existing_section')
-        self.assertIsNone(configuration)
-
-    def test_not_existing_variables(self):
-        configuration = get_configuration('messaging',
-                                          config_file='non-existing')
+    def test_not_existing_section(self):
+        configuration = get_configuration('not-existing-section',
+                                          config_file=self.config_file.name)
         self.assertIsNone(configuration)
 
     def test_existing_config(self):
         configuration = get_configuration(section_name='some_section',
                                           config_file=self.config_file.name,
-                                          variables=self.env_file.name)
+                                          variables_file=self.env_file.name)
         self.assertTrue('host' in configuration)
         self.assertTrue('port' in configuration)
         self.assertEquals(configuration['host'], 'foo')
@@ -55,7 +51,7 @@ class FacadeTest(unittest.TestCase):
         os.environ['SOME_PORT_NAME'] = '6661'
         configuration = get_configuration(section_name='some_section',
                                           config_file=self.config_file.name,
-                                          variables=self.env_file.name)
+                                          variables_file=self.env_file.name)
         self.assertTrue('host' in configuration)
         self.assertTrue('port' in configuration)
         self.assertEquals(configuration['host'], 'bar')
@@ -63,9 +59,3 @@ class FacadeTest(unittest.TestCase):
         self.assertFalse('foo' in configuration)
         os.environ.pop('SOME_HOST_NAME')
         os.environ.pop('SOME_PORT_NAME')
-
-    def test_not_in_config(self):
-        configuration = get_configuration(section_name='other_section',
-                                          config_file=self.config_file.name,
-                                          variables=self.env_file.name)
-        self.assertIsNone(configuration)

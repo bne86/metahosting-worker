@@ -61,7 +61,6 @@ class Worker(object):
         """
         logging.debug('Worker started')
         self.worker['status'] = WORKER_STATUS.OK
-        set_manager(queues=['info', self.worker['name']])
         subscribe(self.worker['name'], self._dispatch)
         self.run()
 

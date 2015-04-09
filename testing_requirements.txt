@@ -9,3 +9,4 @@ pep8==1.4.6
 pika==0.9.14
 pymongo==2.7.2
 requests==2.5.0
+radon==1.2

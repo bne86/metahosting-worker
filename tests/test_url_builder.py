@@ -9,9 +9,8 @@ RABBIT_URL_FORMAT = 'amqp://localhost:5672;http://localhost:15672'
 
 
 def load_container(name):
-    with open(os.path.join('./containers', name)) as ff:
-        container = json.load(ff)[0]
-    print '%s container loaded' % name
+    with open(os.path.join('tests/containers', name)) as ff:
+        container = json.load(ff)
     return container
 
 
@@ -25,12 +24,14 @@ class TestGenericUrlBuilder(unittest.TestCase):
         pass
 
     def test_neo_builder(self):
+        self.fail()
         res = furl(neo_builder(self.neo_container))
         self.assertEqual(res.host, '0.0.0.0')
         self.assertEqual(res.port, 49154)
         self.assertEqual(res.scheme, 'http')
 
     def test_exist_builder(self):
+        self.fail()
         res = furl(exist_builder(self.exist_container))
         self.assertEqual(res.host, '0.0.0.0')
         self.assertEqual(res.port, 49153)
@@ -38,6 +39,7 @@ class TestGenericUrlBuilder(unittest.TestCase):
         self.assertEqual(res.path, '/exist/')
 
     def test_url_builder_filter_neo(self):
+        self.fail()
         self.assertFalse('url' in self.neo_container)
         res = url_builder_filter(self.neo_container, NEO_URL_FORMAT)
         self.assertTrue('url' in self.neo_container)

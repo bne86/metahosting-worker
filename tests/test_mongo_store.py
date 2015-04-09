@@ -1,13 +1,12 @@
-from ming import create_datastore
+from pymongo import MongoClient
 from stores.mongo_store import MongoStore
 
 __author__ = 'jj'
 
 import unittest
 
-host='localhost'
-port=27017
-url = 'mongodb://localhost:27017/metahosting_tests'
+host = '192.168.59.103'
+port = 27017
 
 
 class MongoStoreTest(unittest.TestCase):
@@ -15,8 +14,7 @@ class MongoStoreTest(unittest.TestCase):
         pass
 
     def tearDown(self):
-        conn = create_datastore(url).conn
-        conn.drop_database('metahosting_tests')
+        MongoClient(host=host, port=port).drop_database('metahosting_tests')
 
     def get_store(self):
         config = dict()

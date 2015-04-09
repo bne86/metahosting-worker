@@ -1,4 +1,4 @@
-[{
+{
     "Args": [
         "-c",
         "/neo4j/bin/neo4j start-no-wait \u0026\u0026 tail -f /neo4j/data/log/*.log"
@@ -107,4 +107,3 @@
     "Volumes": {},
     "VolumesRW": {}
 }
-]

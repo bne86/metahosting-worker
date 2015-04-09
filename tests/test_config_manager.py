@@ -9,7 +9,6 @@ class FacadeTest(unittest.TestCase):
     def setUp(self):
         cfg = ConfigParser.ConfigParser()
         cfg.add_section('some_section')
-        cfg.set('some_section', 'foo', 'bar')
         cfg.set('some_section', 'host', 'foo')
         cfg.set('some_section', 'port', '29192')
         self.config_file = NamedTemporaryFile(mode='w', delete=False)

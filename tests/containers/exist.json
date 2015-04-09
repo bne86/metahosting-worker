@@ -1,4 +1,4 @@
-[{
+{
     "Args": [
         "-c",
         "/entrypoint.sh"
@@ -101,4 +101,3 @@
         "/opt/exist/webapp/WEB-INF/data": true
     }
 }
-]

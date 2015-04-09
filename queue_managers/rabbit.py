@@ -6,7 +6,7 @@ import threading
 
 
 class BlockingPikaManager(object):
-    def __init__(self, host, port, user='guest', password='guest', queue=None):
+    def __init__(self, host, port, user, password, queue=None):
         logging.debug('Initializing Messaging')
         credentials = pika.PlainCredentials(user, password)
         self.parameters = pika.ConnectionParameters(host=host,
@@ -52,6 +52,10 @@ class BlockingPikaManager(object):
         self.channel.basic_consume(callback_wrapper, queue=routing_key)
         if not self.thread.is_alive():
             self.thread.start()
+
+    def unsubscribe(self, routing_key, listener):
+        # self.channel.basic_cancel(consumer_tag=listener.__name__)
+        raise NotImplementedError
 
     def disconnect(self):
         if self.connection.is_open:

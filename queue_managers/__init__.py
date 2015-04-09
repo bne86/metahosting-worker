@@ -1,4 +1,5 @@
 import copy
+import logging
 from config_manager import get_configuration
 from queue_managers.rabbit import BlockingPikaManager
 
@@ -7,22 +8,22 @@ manager = dict()
 
 
 def set_manager(queues=None):
-    config = get_configuration('messaging') or {'host': 'localhost',
-                                                'port': 5672,
-                                                'user': 'guest',
-                                                'pass': 'guest'}
-    global manager
-    for item in queues:
-        manager[item] = BlockingPikaManager(host=config['host'],
-                                            port=int(config['port']),
-                                            user=config['user'],
-                                            password=config['pass'],
-                                            queue=item)
+    config = get_configuration('messaging')
+    if 'host' in config and 'port' in config \
+            and 'user' in config and 'port' in config:
+        global manager
+        manager[queues] = BlockingPikaManager(host=config['host'],
+                                              port=int(config['port']),
+                                              user=config['user'],
+                                              password=config['pass'],
+                                              queue=queues)
+    else:
+        logging.error('Configuration parameters for messaging missing')
 
 
 def get_manager(queue=None):
     global manager
-    if not manager:
+    if not manager or queue not in manager:
         set_manager(queues=queue)
     return manager[queue]
 
@@ -41,3 +42,4 @@ def get_message_subject(message):
 
 def subscribe(routing_key, callback):
     get_manager(queue=routing_key).subscribe(routing_key, callback)
+

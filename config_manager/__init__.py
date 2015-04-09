@@ -7,9 +7,13 @@ _CONFIG_FILE = 'config.ini'
 
 
 def get_configuration(section_name, config_file=None,
-                      variables_file=_VARIABLES_FILE):
+                      variables_file=None):
     if not config_file:
+        logging.debug('Using %s for configuration', _CONFIG_FILE)
         config_file = _CONFIG_FILE
+    if not variables_file:
+        logging.debug('Using %s for env configuration', _VARIABLES_FILE)
+        variables_file = _CONFIG_FILE
     var_config = ConfigParser.SafeConfigParser()
     var_config.read(variables_file)
     config = ConfigParser.SafeConfigParser()
@@ -21,8 +25,8 @@ def get_configuration(section_name, config_file=None,
         return None
     try:
         env_overrides = var_config.options(section=section_name)
-    except ConfigParser.NoSectionError:
-        logging.debug('var config file %s not found', variables_file)
+    except ConfigParser.Error as err:
+        logging.debug('Error while reading environment config: %s', err)
         env_overrides = []
 
     properties = {}
@@ -39,5 +43,5 @@ def get_configuration(section_name, config_file=None,
             except ConfigParser.NoOptionError:
                 logging.error('Unable to initialize %s for %s', name,
                               section_name)
-                return None
+    logging.debug('{}, {}'.format(section_name, str(properties)))
     return properties

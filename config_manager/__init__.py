@@ -14,19 +14,19 @@ def get_configuration(section_name, config_file=None,
     if not variables_file:
         logging.debug('Using %s for env configuration', _VARIABLES_FILE)
         variables_file = _VARIABLES_FILE
-    var_config = ConfigParser.SafeConfigParser()
-    var_config.read(variables_file)
-    config = ConfigParser.SafeConfigParser()
-    config.read(config_file)
     try:
+        config = ConfigParser.SafeConfigParser()
+        config.read(config_file)
         config_items = config.items(section=section_name)
     except ConfigParser.Error as err:
-        logging.error('Error while reading config: %s', err)
+        logging.error(err)
         return None
     try:
+        var_config = ConfigParser.SafeConfigParser()
+        var_config.read(variables_file)
         env_overrides = var_config.options(section=section_name)
     except ConfigParser.Error as err:
-        logging.error('Error while reading environment config: %s', err)
+        logging.debug(err)
         env_overrides = []
 
     properties = {}

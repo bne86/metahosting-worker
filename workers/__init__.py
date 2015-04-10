@@ -8,15 +8,28 @@ from queue_managers import get_message_subject, set_manager, subscribe
 from urlbuilders import GenericUrlBuilder
 from workers.manager.port import PortManager
 
+
 def get_random_key(length=16):
     return ''.join(
         random.SystemRandom().choice(string.ascii_letters + string.digits)
         for _ in range(length))
 
+callbacks = dict()
+
+
+def callback(subject):
+    def decorator(f):
+        logging.debug('Registering callback for %s: %s', subject,
+                      f.__name__)
+        global callbacks
+        callbacks[subject] = f
+        return f
+
+    return decorator
+
 
 class Worker(object):
     __metaclass__ = ABCMeta
-    callbacks = dict()
     PUBLISHING_INTERVAL = 10
 
     def __init__(self, worker_conf, worker_env,
@@ -63,7 +76,7 @@ class Worker(object):
 
     def stop(self, signal, stack):
         """
-        try to catch a SIGTERM signal in main thread and stop, not working.
+        try to catch a SIGTERM signal in main thread and stop.
         :param signal:
         :param stack:
         :return:
@@ -73,6 +86,14 @@ class Worker(object):
         self.worker['status'] = 'Worker not available'
         self._publish_type()
         self.shutdown = True
+
+    @callback('create_instance')
+    def create(self, message):
+        self.create_instance(message)
+
+    @callback('delete_instance')
+    def delete(self, message):
+        self.delete_instance(message)
 
     @abstractmethod
     def create_instance(self, message):
@@ -97,22 +118,11 @@ class Worker(object):
     def _publish_type(self):
         self.publish('info', 'instance_type', {'type': self.worker})
 
-    @staticmethod
-    def _callback(subject):
-        def decorator(f):
-            logging.debug('Registering callback for %s: %s', subject,
-                          f.__name__)
-            Worker.callbacks[subject] = f
-            return f
-
-        return decorator
-
     def _dispatch(self, message):
         subject = get_message_subject(message)
-
-        if subject in self.callbacks:
-            callback = Worker.callbacks[subject]
-            callback(self, message)
+        global callbacks
+        if subject in callbacks:
+            callbacks[subject](self, message)
         else:
             logging.error('No callback for %s found!', subject)
 

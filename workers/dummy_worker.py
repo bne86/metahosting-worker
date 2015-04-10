@@ -22,7 +22,6 @@ class DummyWorker(Worker):
                                           local_persistence,
                                           send_method)
 
-    @Worker._callback('create_instance')
     def create_instance(self, message):
         instance = message.copy()
         logging.info('Creating instance id: %s', instance['id'])
@@ -30,7 +29,6 @@ class DummyWorker(Worker):
         self.local_persistence.update_instance_status(
             instance, INSTANCE_STATUS.STARTING)
 
-    @Worker._callback('delete_instance')
     def delete_instance(self, message):
         instance_id = message['id']
         logging.info('Deleting instance id: %s', instance_id)

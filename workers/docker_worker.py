@@ -29,7 +29,6 @@ class DockerWorker(Worker):
         self._image_ports = self._initialize_image()
         self._get_all_allocated_ports()
 
-    @Worker._callback('create_instance')
     def create_instance(self, message):
         instance = message.copy()
         logging.info('Creating instance id: %s', instance['id'])
@@ -52,7 +51,6 @@ class DockerWorker(Worker):
                 instance=instance,
                 status=INSTANCE_STATUS.FAILED)
 
-    @Worker._callback('delete_instance')
     def delete_instance(self, message):
         msg = message.copy()
         instance = self.local_persistence.get_instance(msg['id'])
@@ -64,9 +62,9 @@ class DockerWorker(Worker):
                 logging.debug('Container does not exist, not stopping it')
                 return
             free_ports = self._get_container_ports(instance['container_id'])
-            self.docker.stop(container)
-            self.port_manager.release_ports(free_ports)
+            self.docker.kill(container)
             self.docker.remove_container(container)
+            self.port_manager.release_ports(free_ports)
             self.local_persistence.update_instance_status(
                 instance=instance,
                 status=INSTANCE_STATUS.DELETED)

@@ -22,6 +22,12 @@ class PortManager():
         logging.debug("Acquired ports: %s", acquired_ports)
         return acquired_ports
 
+    def enough_ports_left(self, count):
+        if count > len(set(self.port_range.difference(self.used_ports))):
+            return False
+        else:
+            return True
+
     def release_ports(self, ports):
         logging.debug('Releasing ports %s', str(ports))
         for port in ports:

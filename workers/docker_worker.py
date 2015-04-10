@@ -177,6 +177,17 @@ class DockerWorker(Worker):
             else:
                 logging.error("error while publishing updates")
         self._get_all_allocated_ports()
+        self._update_worker_status()
+
+    def _update_worker_status(self):
+        number_required_ports = len(self._image_ports)
+        if self.port_manager.enough_ports_left(number_required_ports):
+            self.worker['available'] = True
+            self.worker['status'] = 'Worker available'
+        else:
+            self.worker['available'] = False
+            self.worker['status'] = 'Worker unavailable, ' \
+                                    'to many resources in use'
 
     def _set_networking(self, instance):
         instance['connection'] = \

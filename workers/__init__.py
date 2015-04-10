@@ -111,8 +111,8 @@ class Worker(object):
         while not self.shutdown:
             logging.info('Publishing type and status updates: %s',
                          self.worker['name'])
-            self._publish_type()
             self._publish_updates()
+            self._publish_type()
             sleep(self.PUBLISHING_INTERVAL)
 
     def _publish_type(self):

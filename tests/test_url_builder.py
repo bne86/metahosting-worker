@@ -1,49 +1,37 @@
 import json
 import unittest
 import os
-from furl import furl
+from urlbuilders import GenericUrlBuilder
 
-NEO_URL_FORMAT = 'http://localhost:7474'
+NEO_URL_FORMAT = 'http://localhost:7474;https://localhost:7473'
 EXIST_URL_FORMAT = 'http://localhost:8080/exist'
-RABBIT_URL_FORMAT = 'amqp://localhost:5672;http://localhost:15672'
 
 
 def load_container(name):
-    with open(os.path.join('tests/containers', name)) as ff:
+    with open(os.path.join('containers', name)) as ff:
         container = json.load(ff)
     return container
 
 
 class TestGenericUrlBuilder(unittest.TestCase):
     def setUp(self):
-        self.neo_container = load_container('neo4j.json')
-        self.exist_container = load_container('exist.json')
-        self.rabbit_container = load_container('rabbit.json')
+        self.neo_connection = \
+            load_container('neo4j.json')['HostConfig']['PortBindings']
+        self.exist_connection = \
+            load_container('exist.json')['HostConfig']['PortBindings']
 
     def tearDown(self):
         pass
 
-    def test_neo_builder(self):
-        self.fail()
-        res = furl(neo_builder(self.neo_container))
-        self.assertEqual(res.host, '0.0.0.0')
-        self.assertEqual(res.port, 49154)
-        self.assertEqual(res.scheme, 'http')
+    def test_neo_url_builder(self):
+        builder = GenericUrlBuilder(
+            worker_conf={'formatting_string': NEO_URL_FORMAT})
+        urls = builder.build(self.neo_connection)
+        self.assertTrue(len(urls) == 2)
 
-    def test_exist_builder(self):
-        self.fail()
-        res = furl(exist_builder(self.exist_container))
-        self.assertEqual(res.host, '0.0.0.0')
-        self.assertEqual(res.port, 49153)
-        self.assertEqual(res.scheme, 'http')
-        self.assertEqual(res.path, '/exist/')
-
-    def test_url_builder_filter_neo(self):
-        self.fail()
-        self.assertFalse('url' in self.neo_container)
-        res = url_builder_filter(self.neo_container, NEO_URL_FORMAT)
-        self.assertTrue('url' in self.neo_container)
-        url = furl(self.neo_container['url'])
-        self.assertEqual(url.host, '0.0.0.0')
-        self.assertEqual(url.port, 49154)
-        self.assertEqual(url.scheme, 'http')
+    def test_exist_url_builder(self):
+        builder = GenericUrlBuilder(
+            worker_conf={'formatting_string': EXIST_URL_FORMAT})
+        urls = builder.build(self.exist_connection)
+        self.assertTrue(len(urls) == 1)
+        self.assertTrue('exist' in urls[0])

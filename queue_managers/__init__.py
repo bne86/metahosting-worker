@@ -42,4 +42,3 @@ def get_message_subject(message):
 
 def subscribe(routing_key, callback):
     get_manager(queue=routing_key).subscribe(routing_key, callback)
-

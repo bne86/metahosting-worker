@@ -14,8 +14,9 @@ class RabbitTest(unittest.TestCase):
         config_manager._CONFIG_FILE = os.getenv('TEST_CONFIG', 'config.ini')
         config = config_manager.get_configuration(section_name='messaging')
         self.queue_name = 'testing_queue'
-        self.manager = BlockingPikaManager(host=config['host'], port=int(config[
-            'port']), user='guest', password='guest', queue=self.queue_name)
+        self.manager = BlockingPikaManager(
+            host=config['host'], port=int(config['port']),
+            user='guest', password='guest', queue=self.queue_name)
 
     def tearDown(self):
         pass

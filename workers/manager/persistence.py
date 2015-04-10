@@ -23,7 +23,7 @@ class PersistenceManager:
         logging.info('Initializing instance manager')
         self._instances = get_instance_store(config)
         self.publish = send_method
-        logging.info('Instances stored: %r', self.get_instances())
+        logging.info('Instances stored: %r', self.get_instances().keys())
 
     def get_instance(self, instance_id):
         return self._instances.get(instance_id)

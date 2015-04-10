@@ -1,4 +1,0 @@
-# the wollowing code expects that messaging and mongo are up and running.
-dummyworker:
-  build: .
-  command: /app/run.py --config config.ini

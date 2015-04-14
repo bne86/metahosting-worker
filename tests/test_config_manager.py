@@ -1,16 +1,22 @@
-from tempfile import NamedTemporaryFile
-import unittest
 import ConfigParser
-from config_manager import get_configuration
 import os
+import unittest
+from mock import Mock
+from config_manager import get_configuration, get_backend_class
+from tempfile import NamedTemporaryFile
 
 
-class FacadeTest(unittest.TestCase):
+class Backend():
+    pass
+
+
+class ConfigManagerTest(unittest.TestCase):
     def setUp(self):
         cfg = ConfigParser.ConfigParser()
         cfg.add_section('some_section')
         cfg.set('some_section', 'host', 'foo')
         cfg.set('some_section', 'port', '29192')
+        cfg.set('some_section', 'backend', 'tests.test_config_manager.Backend')
         self.config_file = NamedTemporaryFile(mode='w', delete=False)
         cfg.write(self.config_file)
         self.config_file.close()
@@ -58,3 +64,12 @@ class FacadeTest(unittest.TestCase):
         self.assertFalse('foo' in configuration)
         os.environ.pop('SOME_HOST_NAME')
         os.environ.pop('SOME_PORT_NAME')
+
+    def test_get_backend_class(self):
+        configuration = get_configuration(section_name='some_section',
+                                          config_file=self.config_file.name,
+                                          variables_file=self.env_file.name)
+        backend_class = get_backend_class(configuration)
+        self.assertTrue('Backend' in str(backend_class))
+
+

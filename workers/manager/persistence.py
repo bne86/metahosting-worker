@@ -1,8 +1,7 @@
-from collections import namedtuple
-import importlib
 import logging
 import time
-
+from collections import namedtuple
+from config_manager import get_backend_class
 States = namedtuple('States', ['STARTING', 'DELETED', 'RUNNING', 'STOPPED',
                                'FAILED'])
 INSTANCE_STATUS = States('starting', 'deleted', 'running', 'stopped', 'failed')
@@ -21,7 +20,8 @@ class PersistenceManager:
         :return: -
         """
         logging.info('Initializing instance manager')
-        self._instances = get_instance_store(config)
+        backend_store_class = get_backend_class(config)
+        self._instances = backend_store_class(config=config)
         self.publish = send_method
         logging.info('Instances stored: %r', self.get_instances().keys())
 
@@ -50,14 +50,3 @@ class PersistenceManager:
         instance = self.get_instance(instance_id)
         if instance is not None:
             self.publish('info', 'instance_info', {'instance': instance})
-
-
-def get_instance_store(config):
-    """
-    :param config:dict containing the storage backend configuration
-    :return: backend for instance store
-    """
-    class_path = config['backend'].split(".")
-    module = importlib.import_module(".".join(class_path[:-1]))
-    backend_class = getattr(module, class_path[-1])
-    return backend_class(config=config)

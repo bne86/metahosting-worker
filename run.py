@@ -2,23 +2,11 @@
 
 import argparse
 import config_manager
-import importlib
 import logging
 import signal
+from config_manager import get_backend_class
 from workers.manager.persistence import PersistenceManager
 from queue_managers import send_message
-
-
-def _get_backend_class(config):
-    """
-    :param config: worker configuration
-    :return: worker backend class
-    """
-    class_data = config['backend'].split(".")
-    module_path = ".".join(class_data[:-1])
-    module = importlib.import_module(module_path)
-    class_str = class_data[-1]
-    return getattr(module, class_str)
 
 
 def run():
@@ -56,7 +44,7 @@ def run():
 
     worker_config = config_manager.get_configuration('worker')
     worker_env = config_manager.get_configuration('configurable_env')
-    worker_class = _get_backend_class(worker_config)
+    worker_class = get_backend_class(worker_config)
     worker = worker_class(worker_config,
                           worker_env,
                           local_persistence,

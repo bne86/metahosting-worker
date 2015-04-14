@@ -45,3 +45,16 @@ def get_configuration(section_name, config_file=None,
                               section_name)
     logging.debug('{}, {}'.format(section_name, str(properties)))
     return properties
+
+
+def get_backend_class(config):
+    """
+    :param config: configuration containing a 'backend' item
+    :return: backend class
+    """
+    import importlib
+    class_data = config['backend'].split(".")
+    module_path = ".".join(class_data[:-1])
+    module = importlib.import_module(module_path)
+    class_str = class_data[-1]
+    return getattr(module, class_str)

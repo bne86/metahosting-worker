@@ -23,8 +23,9 @@ class DockerWorker(Worker):
                                            local_persistence,
                                            send_method)
         logging.debug('DockerWorker initialization')
-        self.docker = AutoVersionClient(base_url=self.worker_conf['docker_url'],
-                                        tls=_get_tls(worker_conf))
+        self.docker = AutoVersionClient(
+            base_url=self.worker_conf['docker_url'],
+            tls=_get_tls(worker_conf))
         self._image_ports = self._initialize_image()
         self._get_all_allocated_ports()
 

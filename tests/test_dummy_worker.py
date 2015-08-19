@@ -10,7 +10,7 @@ class DummyWorkerTest(unittest.TestCase):
         self.send_method = Mock()
         config = {'name': 'dummyTest', 'description': 'foo bar bar'}
         self.worker = DummyWorker(worker_conf=config,
-                                  worker_env=None,
+                                  instance_env=None,
                                   local_persistence=self.instance_manager,
                                   send_method=self.send_method)
 

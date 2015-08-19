@@ -71,5 +71,3 @@ class ConfigManagerTest(unittest.TestCase):
                                           variables_file=self.env_file.name)
         backend_class = get_backend_class(configuration)
         self.assertTrue('Backend' in str(backend_class))
-
-

@@ -1,4 +1,4 @@
-from docker.client import Client
+from docker.client import AutoVersionClient
 from docker.tls import TLSConfig
 import docker.errors
 import logging
@@ -23,9 +23,8 @@ class DockerWorker(Worker):
                                            local_persistence,
                                            send_method)
         logging.debug('DockerWorker initialization')
-        self.docker = Client(base_url=self.worker_conf['base_url'],
-                             version=self.worker_conf['client_version'],
-                             tls=_get_tls(worker_conf))
+        self.docker = AutoVersionClient(base_url=self.worker_conf['base_url'],
+                                        tls=_get_tls(worker_conf))
         self._image_ports = self._initialize_image()
         self._get_all_allocated_ports()
 

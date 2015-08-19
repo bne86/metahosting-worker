@@ -43,12 +43,13 @@ def run():
         send_method=send_message)
 
     worker_config = config_manager.get_configuration('worker')
-    worker_env = config_manager.get_configuration('configurable_env')
+    instance_env = config_manager.\
+        get_instance_configuration('instance_environment')
     worker_class = get_backend_class(worker_config)
-    worker = worker_class(worker_config,
-                          worker_env,
-                          local_persistence,
-                          send_message)
+    worker = worker_class(worker_conf=worker_config,
+                          instance_env=instance_env,
+                          local_persistence=local_persistence,
+                          send_method=send_message)
 
     signal.signal(signal.SIGTERM, worker.stop)
     signal.signal(signal.SIGHUP, worker.stop)

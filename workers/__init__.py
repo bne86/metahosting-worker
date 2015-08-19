@@ -32,7 +32,7 @@ class Worker(object):
     __metaclass__ = ABCMeta
     PUBLISHING_INTERVAL = 10
 
-    def __init__(self, worker_conf, worker_env,
+    def __init__(self, worker_conf, instance_env,
                  local_persistence, send_method):
         """
         Worker skeleton
@@ -44,21 +44,19 @@ class Worker(object):
         """
         logging.debug('Worker initialization')
 
-        if 'disable_https_warnings' in worker_conf \
-                and 'base_url' in worker_conf \
-                and 'https' in worker_conf['base_url']:
+        if 'disable_https_warnings' in worker_conf:
             import requests.packages.urllib3
             requests.packages.urllib3.disable_warnings()
 
         self.shutdown = False
         self.publish = send_method
         self.worker_conf = worker_conf
-        self.worker_env = worker_env
+        self.instance_env = instance_env
         self.local_persistence = local_persistence
         self.worker = dict()
         self.worker['name'] = worker_conf['name']
         self.worker['description'] = worker_conf['description']
-        self.worker['environment'] = _create_worker_env(worker_env)
+        self.worker['environment'] = _load_instance_env(instance_env)
         self.port_manager = PortManager(worker_conf)
         self.url_builder = GenericUrlBuilder(worker_conf)
 
@@ -132,6 +130,7 @@ class Worker(object):
         :return: list containing key=value pairs send to instance
         """
         worker_env = self.worker['environment']
+        logging.error('WORKER_ENV: %s', worker_env)
         instance_env = []
         for key in worker_env.keys():
             if worker_env[key] == '':
@@ -139,12 +138,14 @@ class Worker(object):
             else:
                 instance_env.append(key + '=' + worker_env[key])
         logging.debug('Current environment for VM: %s', instance_env)
+
+        logging.error('INSTANCE_ENV: %s', instance_env)
         return instance_env
 
 
-def _create_worker_env(worker_env=None):
+def _load_instance_env(instance_env=None):
     environment = dict()
-    if worker_env:
-        for item in worker_env.keys():
-            environment[item.upper()] = worker_env[item]
+    if instance_env:
+        for item in instance_env.keys():
+            environment[item.upper()] = instance_env[item]
     return environment

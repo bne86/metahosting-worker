@@ -6,7 +6,7 @@ from workers import Worker
 
 
 class DummyWorker(Worker):
-    def __init__(self, worker_conf, worker_env,
+    def __init__(self, worker_conf, instance_env,
                  local_persistence, send_method):
         """
         Call super-class constructor for common configuration items
@@ -17,10 +17,10 @@ class DummyWorker(Worker):
         :return: -
         """
         logging.debug('DummyWorker initialization')
-        super(DummyWorker, self).__init__(worker_conf,
-                                          worker_env,
-                                          local_persistence,
-                                          send_method)
+        super(DummyWorker, self).__init__(worker_conf=worker_conf,
+                                          instance_env=instance_env,
+                                          local_persistence=local_persistence,
+                                          send_method=send_method)
 
     def create_instance(self, message):
         instance = message.copy()

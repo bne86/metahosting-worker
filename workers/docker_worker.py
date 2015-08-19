@@ -7,7 +7,7 @@ from workers import Worker
 
 
 class DockerWorker(Worker):
-    def __init__(self, worker_conf, worker_env,
+    def __init__(self, worker_conf, instance_env,
                  local_persistence, send_method):
         """
         Call super-class constructor for common configuration items and
@@ -19,11 +19,11 @@ class DockerWorker(Worker):
         :return: -
         """
         super(DockerWorker, self).__init__(worker_conf,
-                                           worker_env,
+                                           instance_env,
                                            local_persistence,
                                            send_method)
         logging.debug('DockerWorker initialization')
-        self.docker = AutoVersionClient(base_url=self.worker_conf['base_url'],
+        self.docker = AutoVersionClient(base_url=self.worker_conf['docker_url'],
                                         tls=_get_tls(worker_conf))
         self._image_ports = self._initialize_image()
         self._get_all_allocated_ports()

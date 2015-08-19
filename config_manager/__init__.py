@@ -47,6 +47,17 @@ def get_configuration(section_name, config_file=None,
     return properties
 
 
+def get_instance_configuration(section_name, config_file=None,
+                               variables_file=None):
+    properties = get_configuration(section_name=section_name,
+                                   config_file=config_file,
+                                   variables_file=variables_file)
+    for item in os.environ:
+        if 'INSTANCE_ENVIRONMENT' in item:
+            properties[item.split('__')[1]] = os.getenv(item)
+    return properties
+
+
 def get_backend_class(config):
     """
     :param config: configuration containing a 'backend' item

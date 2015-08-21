@@ -1,10 +1,10 @@
 from abc import ABCMeta, abstractmethod
-from collections import namedtuple
 import logging
 import random
 import string
+import uuid
 from time import sleep
-from queue_managers import get_message_subject, set_manager, subscribe
+from queue_managers import get_message_subject, subscribe
 from urlbuilders import GenericUrlBuilder
 from workers.manager.port import PortManager
 
@@ -55,6 +55,7 @@ class Worker(object):
         self.local_persistence = local_persistence
         self.worker = dict()
         self.worker['name'] = worker_conf['name']
+        self.worker['uuid'] = _get_uuid(worker_conf)
         self.worker['description'] = worker_conf['description']
         self.worker['environment'] = _load_instance_env(instance_env)
         self.port_manager = PortManager(worker_conf)
@@ -141,6 +142,20 @@ class Worker(object):
 
         logging.error('INSTANCE_ENV: %s', instance_env)
         return instance_env
+
+
+def _get_uuid(conf):
+    try:
+        filehandler = open(conf['uuid_file'], 'r')
+        content = (filehandler.read()).rstrip()
+        return str(uuid.UUID(content))
+    except IOError:
+        logging.error('Not able to read file: %s ', conf['uuid_file'])
+    except ValueError:
+        logging.error('Not able to validate uuid: %s ', content)
+    except KeyError:
+        logging.error('No path for uuid file in conf' )
+    return str(uuid.uuid4())
 
 
 def _load_instance_env(instance_env=None):

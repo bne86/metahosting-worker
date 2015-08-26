@@ -2,40 +2,39 @@ import logging
 import time
 
 from collections import namedtuple
-from metahosting.common.config_manager import get_backend_class
 
 States = namedtuple('States', ['STARTING', 'DELETED', 'RUNNING', 'STOPPED',
                                'FAILED'])
 INSTANCE_STATUS = States('starting', 'deleted', 'running', 'stopped', 'failed')
 
 
-class PersistenceManager:
+class PersistenceManager(object):
     """
     wrapper around a store (metahosting.stores) to store instance information
     for local management.
     """
 
-    def __init__(self, config, send_method):
+    def __init__(self, config, backend, publish):
         """
         :param config: local_persistence part of the config
         :param send_method: method to access messaging for sending info
         :return: -
         """
         logging.info('Initializing instance manager')
-        backend_store_class = get_backend_class(config)
-        self._instances = backend_store_class(config=config)
-        self.publish = send_method
+        backend_store_class = backend
+        self.instances = backend_store_class(config=config)
+        self.publish = publish
         logging.info('Instances stored: %r', self.get_instances().keys())
 
     def get_instance(self, instance_id):
-        return self._instances.get(instance_id)
+        return self.instances.get(instance_id)
 
     def get_instances(self):
-        return self._instances.get_all()
+        return self.instances.get_all()
 
     def set_instance(self, instance_id, instance):
         instance['ts'] = time.time()
-        self._instances.update(instance_id, instance)
+        self.instances.update(instance_id, instance)
 
     def update_instance_status(self, instance, status, publish=True):
         instance['status'] = status

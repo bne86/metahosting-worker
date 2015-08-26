@@ -7,25 +7,19 @@ from workers import Worker
 
 
 class DockerWorker(Worker):
-    def __init__(self, worker_conf, instance_env,
-                 local_persistence, send_method):
+    def __init__(self, config, persistence, messaging):
         """
         Call super-class constructor for common configuration items and
         then do the docker-specific setup
-        :param worker_conf: dict containing the configuration
-        :param worker_env: dict containing the configurable environment
-        :param local_persistence: local instance manger
-        :param send_method: messaging communication method
         :return: -
         """
-        super(DockerWorker, self).__init__(worker_conf,
-                                           instance_env,
-                                           local_persistence,
-                                           send_method)
+        super(DockerWorker, self).__init__(config=config,
+                                           persistence=persistence,
+                                           messaging=messaging)
         logging.debug('DockerWorker initialization')
         self.docker = AutoVersionClient(
-            base_url=self.worker_conf['docker_url'],
-            tls=_get_tls(worker_conf))
+            base_url=self.config['worker']['docker_url'],
+            tls=_get_tls(config['worker']))
         self._image_ports = self._initialize_image()
         self._get_all_allocated_ports()
 
@@ -78,8 +72,8 @@ class DockerWorker(Worker):
         download a docker image and get the ports that we have to link
         :return: list of ports(str)
         """
-        logging.info('Initializing image %s', self.worker_conf['image'])
-        self.worker['image'] = self.worker_conf['image']
+        logging.info('Initializing image %s', self.config['worker']['image'])
+        self.worker['image'] = self.config['worker']['image']
         tmp = self.worker['image'].split(':')
         if len(tmp) == 2:
             self.docker.import_image(image=tmp[0], tag=tmp[1])
@@ -127,11 +121,11 @@ class DockerWorker(Worker):
         try:
             networking = self._get_container(
                 container_id)['NetworkSettings']['Ports']
-            if 'ip' in self.worker_conf.keys():
+            if 'ip' in self.config['worker'].keys():
                 for port in networking:
                     for index, unused in enumerate(networking[port]):
                         networking[port][index][u'HostIp'] = \
-                            unicode(self.worker_conf['ip'])
+                            unicode(self.config['worker']['ip'])
             return networking
         except TypeError:
             logging.error('Cannot get ports for container_id %s', container_id)

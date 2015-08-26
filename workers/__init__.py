@@ -1,14 +1,15 @@
-from abc import ABCMeta, abstractmethod
 import logging
-import os
 import random
 import string
-from time import sleep
-from queue_managers import get_message_subject, subscribe
-from urlbuilders import GenericUrlBuilder
-from workers.manager.port import PortManager
+
+from abc import ABCMeta, abstractmethod
+from time import sleep, ctime
+
 from metahosting.common import get_uuid
-from metahosting.common.config_manager import get_configuration
+from metahosting.common.messaging import get_message_subject
+from urlbuilders import GenericUrlBuilder
+from workers.manager.persistence import PersistenceManager
+from workers.manager.port import PortManager
 
 
 def get_random_key(length=16):
@@ -21,32 +22,17 @@ callbacks = dict()
 
 def callback(subject):
     def decorator(f):
-        logging.debug('Registering callback for %s: %s', subject,
-                      f.__name__)
+        logging.debug('Registering callback for %s: %s', subject, f.__name__)
         global callbacks
         callbacks[subject] = f
         return f
-
     return decorator
-
-
-def get_instance_configuration(section_name, config_file=None,
-                               variables_file=None):
-    properties = get_configuration(section_name=section_name,
-                                   config_file=config_file,
-                                   variables_file=variables_file)
-    for item in os.environ:
-        if 'INSTANCE_ENVIRONMENT' in item:
-            properties[item.split('__')[1]] = os.getenv(item)
-    return properties
 
 
 class Worker(object):
     __metaclass__ = ABCMeta
-    PUBLISHING_INTERVAL = 10
 
-    def __init__(self, worker_conf, instance_env,
-                 local_persistence, send_method):
+    def __init__(self, config, persistence, messaging):
         """
         Worker skeleton
         :param worker_conf: dict containing the configuration
@@ -57,22 +43,32 @@ class Worker(object):
         """
         logging.debug('Worker initialization')
 
-        if 'disable_https_warnings' in worker_conf:
+        if 'disable_https_warnings' in config['worker']:
             import requests.packages.urllib3
             requests.packages.urllib3.disable_warnings()
 
-        self.shutdown = False
-        self.publish = send_method
-        self.worker_conf = worker_conf
-        self.instance_env = instance_env
-        self.local_persistence = local_persistence
+        self.running = False
+        self.config = config
+
         self.worker = dict()
-        self.worker['name'] = worker_conf['name']
-        self.worker['uuid'] = get_uuid(worker_conf['uuid_source'])
-        self.worker['description'] = worker_conf['description']
-        self.worker['environment'] = _load_instance_env(instance_env)
-        self.port_manager = PortManager(worker_conf)
-        self.url_builder = GenericUrlBuilder(worker_conf)
+        self.worker['name'] = self.config['worker']['name']
+        self.worker['uuid'] = get_uuid(self.config['worker']['uuid_source'])
+        self.worker['description'] = self.config['worker']['description']
+        self.worker['environment'] = \
+            _load_instance_env(self.config['instance'])
+        self.port_manager = PortManager(self.config['worker'])
+        self.url_builder = GenericUrlBuilder(self.config['worker'])
+
+        self.publish_manager = messaging(
+            config=self.config['messaging'],
+            queue='info')
+        self.publish = self.publish_manager.publish
+        self.subscribe_manager = messaging(config=self.config['messaging'],
+                                           queue=self.worker['name'])
+        self.local_persistence = PersistenceManager(
+            config=self.config['persistence'],
+            backend=persistence,
+            publish=self.publish)
 
     def start(self):
         """
@@ -80,11 +76,18 @@ class Worker(object):
         same time subscribe for create_instance messages on own queue
         :return:
         """
-        logging.debug('Worker started')
+        self.running = True
+        logging.info('Worker starting at %s', ctime())
         self.worker['available'] = True
         self.worker['status'] = 'Worker available'
-        subscribe(self.worker['name'], self._dispatch)
-        self.run()
+        self.subscribe_manager.subscribe(self.worker['name'], self._dispatch)
+        while self.running:
+            logging.info('Publishing type and status updates: %s',
+                         self.worker['name'])
+            self._publish_updates()
+            self._publish_type()
+            sleep(10)
+        logging.info('Worker stopped at %s', ctime())
 
     def stop(self, signal, stack):
         """
@@ -93,11 +96,12 @@ class Worker(object):
         :param stack:
         :return:
         """
-        logging.info('Worker stopped with signal %s, %s', signal, stack)
         self.worker['available'] = False
         self.worker['status'] = 'Worker not available'
         self._publish_type()
-        self.shutdown = True
+        self.publish_manager.disconnect()
+        self.running = False
+        logging.info('Worker stopping with signal %s', signal)
 
     @callback('create_instance')
     def create(self, message):
@@ -118,14 +122,6 @@ class Worker(object):
     @abstractmethod
     def _publish_updates(self):
         pass
-
-    def run(self):
-        while not self.shutdown:
-            logging.info('Publishing type and status updates: %s',
-                         self.worker['name'])
-            self._publish_updates()
-            self._publish_type()
-            sleep(self.PUBLISHING_INTERVAL)
 
     def _publish_type(self):
         self.publish('info', 'instance_type', {'type': self.worker})

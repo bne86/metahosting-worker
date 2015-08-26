@@ -1,42 +1,9 @@
 #!/usr/bin/env python
 
-import argparse
-import logging
 import signal
-from metahosting.common import config_manager
-from queue_managers import send_message
-from workers.manager.persistence import PersistenceManager
 
-
-def argument_parsing():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--debug",
-                        help="get debug output",
-                        action="store_true")
-    parser.add_argument("--logstash",
-                        help="log everything (in addition) to logstash "
-                             ", give host:port")
-    parser.add_argument("--envfile",
-                        help="provide a file that tells which not-default "
-                        "environment variables to use")
-    parser.add_argument("--config",
-                        help="provide a config file")
-    return parser.parse_args()
-
-
-def logging_setup(arguments):
-    logger = logging.getLogger()
-    logger.addHandler(logging.StreamHandler())
-    if arguments.debug:
-        logger.setLevel(logging.DEBUG)
-    else:
-        logger.setLevel(logging.INFO)
-    if arguments.logstash:
-        import logstash
-        host, port = arguments.logstash.split(':')
-        logger.addHandler(logstash.TCPLogstashHandler(host=host,
-                                                      port=int(port),
-                                                      version=1))
+from metahosting.common import \
+    argument_parsing, logging_setup, config_manager as cm
 
 
 def run():
@@ -44,20 +11,24 @@ def run():
     logging_setup(arguments=arguments)
 
     if arguments.config:
-        config_manager._CONFIG_FILE = arguments.config
+        cm._CONFIG_FILE = arguments.config
+    if arguments.envfile:
+        cm._VARIABLES_FILE = arguments.envfile
 
-    local_persistence = PersistenceManager(
-        config=config_manager.get_configuration('local_persistence'),
-        send_method=send_message)
+    config = dict()
+    config['persistence'] = cm.get_configuration('persistence')
+    config['messaging'] = cm.get_configuration('messaging')
+    config['worker'] = cm.get_configuration('worker')
+    config['instance'] = cm.get_instance_configuration('instance_environment')
+    persistence = cm.get_backend_class(config=config['persistence'],
+                                       key='backend')
+    messaging = cm.get_backend_class(config=config['messaging'],
+                                     key='backend')
 
-    worker_config = config_manager.get_configuration('worker')
-    instance_env = config_manager.\
-        get_instance_configuration('instance_environment')
-    worker_class = config_manager.get_backend_class(worker_config)
-    worker = worker_class(worker_conf=worker_config,
-                          instance_env=instance_env,
-                          local_persistence=local_persistence,
-                          send_method=send_message)
+    worker_class = cm.get_backend_class(config=config['worker'], key='backend')
+    worker = worker_class(config=config,
+                          persistence=persistence,
+                          messaging=messaging)
 
     signal.signal(signal.SIGTERM, worker.stop)
     signal.signal(signal.SIGHUP, worker.stop)

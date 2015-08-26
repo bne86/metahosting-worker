@@ -1,26 +1,20 @@
 import logging
 import time
 
-from workers.manager.persistence import INSTANCE_STATUS
 from workers import Worker
+from workers.manager.persistence import INSTANCE_STATUS
 
 
 class DummyWorker(Worker):
-    def __init__(self, worker_conf, instance_env,
-                 local_persistence, send_method):
+    def __init__(self, config, persistence, messaging):
         """
         Call super-class constructor for common configuration items
-        :param worker_conf: dict containing the configuration
-        :param worker_env: dict containing the configurable environment
-        :param local_persistence: local instance manger
-        :param send_method: messaging communication method
         :return: -
         """
         logging.debug('DummyWorker initialization')
-        super(DummyWorker, self).__init__(worker_conf=worker_conf,
-                                          instance_env=instance_env,
-                                          local_persistence=local_persistence,
-                                          send_method=send_method)
+        super(DummyWorker, self).__init__(config=config,
+                                          persistence=persistence,
+                                          messaging=messaging)
 
     def create_instance(self, message):
         instance = message.copy()

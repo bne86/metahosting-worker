@@ -9,7 +9,7 @@ from workers.manager.persistence import PersistenceManager
 from queue_managers import send_message
 
 
-def run():
+def argument_parsing():
     parser = argparse.ArgumentParser()
     parser.add_argument("--debug",
                         help="get debug output",
@@ -22,21 +22,30 @@ def run():
                         "environment variables to use")
     parser.add_argument("--config",
                         help="provide a config file")
-    args = parser.parse_args()
+    return parser.parse_args()
+
+
+def logging_setup(arguments):
     logger = logging.getLogger()
     logger.addHandler(logging.StreamHandler())
-    if args.debug:
+    if arguments.debug:
         logger.setLevel(logging.DEBUG)
     else:
         logger.setLevel(logging.INFO)
-    if args.config:
-        config_manager._CONFIG_FILE = args.config
-    if args.logstash:
+    if arguments.logstash:
         import logstash
-        host, port = args.logstash.split(':')
+        host, port = arguments.logstash.split(':')
         logger.addHandler(logstash.TCPLogstashHandler(host=host,
                                                       port=int(port),
                                                       version=1))
+
+
+def run():
+    arguments = argument_parsing()
+    logging_setup(arguments=arguments)
+
+    if arguments.config:
+        config_manager._CONFIG_FILE = arguments.config
 
     local_persistence = PersistenceManager(
         config=config_manager.get_configuration('local_persistence'),

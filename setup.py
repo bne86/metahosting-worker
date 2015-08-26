@@ -13,10 +13,13 @@ setup(
     install_requires=[
         'argparse==1.2.1',
         'astroid==1.2.1',
-        'docker-py==1.0.0',
+        'docker-py==1.3.1',
         'pep8==1.4.6',
         'pika==0.9.14',
-        'pymongo==2.7.2',
+        'pymongo==3.0.3',
         'retrying==1.3.3',
+        'furl==0.4.4',
+        'python_logstash>=0.4.5'
     ]
 )
+

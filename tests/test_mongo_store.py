@@ -8,7 +8,8 @@ import unittest
 
 class MongoStoreTest(unittest.TestCase):
     def setUp(self):
-        config_manager._CONFIG_FILE = os.getenv('TEST_CONFIG', 'config.ini')
+        config_manager._CONFIG_FILE = os.getenv('TEST_CONFIG',
+                                                'tests/files/config.ini')
         self.config = config_manager.get_configuration(
             section_name='local_persistence')
         self.config['database'] = 'metahosting_tests'

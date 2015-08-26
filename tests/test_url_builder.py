@@ -8,7 +8,7 @@ EXIST_URL_FORMAT = 'http://localhost:8080/exist'
 
 
 def load_container(name):
-    json_path = os.getenv('TEST_CONTAINERS', 'tests/containers')
+    json_path = os.getenv('TEST_CONTAINERS', 'tests/files')
     with open(os.path.join(json_path, name)) as ff:
         container = json.load(ff)
     return container

@@ -12,7 +12,8 @@ def callback(msg):
 
 class RabbitTest(unittest.TestCase):
     def setUp(self):
-        config_manager._CONFIG_FILE = os.getenv('TEST_CONFIG', 'config.ini')
+        config_manager._CONFIG_FILE = os.getenv('TEST_CONFIG',
+                                                'tests/files/config.ini')
         config = config_manager.get_configuration(section_name='messaging')
         self.queue_name = 'testing_queue'
         self.manager = BlockingPikaManager(

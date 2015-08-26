@@ -22,4 +22,3 @@ setup(
         'python_logstash>=0.4.5'
     ]
 )
-

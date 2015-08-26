@@ -1,7 +1,5 @@
 from stores.dict_store import Store
 
-__author__ = 'jj'
-
 import unittest
 
 

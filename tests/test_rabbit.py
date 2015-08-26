@@ -6,7 +6,6 @@ from queue_managers.rabbit import BlockingPikaManager
 from queue_managers import send_message, subscribe, get_message_subject
 
 
-
 def callback(msg):
     print 'Incoming message %s' % msg
 

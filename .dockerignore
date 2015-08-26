@@ -1,0 +1,10 @@
+.git*
+.idea
+.travis.*
+.coverage
+env/
+testing_requirements.txt
+tests/
+docker-compose.yml
+Dockerfile
+setup.py

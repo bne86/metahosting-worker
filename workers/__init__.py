@@ -80,7 +80,7 @@ class Worker(object):
         :param stack:
         :return:
         """
-        logging.debug('Worker stopped with signal %s, %s', signal, stack)
+        logging.info('Worker stopped with signal %s, %s', signal, stack)
         self.worker['available'] = False
         self.worker['status'] = 'Worker not available'
         self._publish_type()

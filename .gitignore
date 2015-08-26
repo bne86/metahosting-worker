@@ -56,4 +56,4 @@ target/
 # PyCharm
 .idea/
 
-worker-config-local.ini
+build.sh

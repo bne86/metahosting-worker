@@ -6,10 +6,8 @@ before_script:
 services:
   - rabbitmq
   - mongodb
-#command to install deps:
 install: "pip install -r testing_requirements.txt && pip install -r requirements.txt"
-#command to run tests:
-script: 
+script:
  - find . -name "*.py" -exec pep8 {} \;
  - nosetests --with-coverage --cover-package=config_manager,stores,workers,queue_managers,urlbuilders
  - radon mi config_manager stores workers queue_managers urlbuilders

@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 
 import argparse
-import config_manager
 import logging
 import signal
-from config_manager import get_backend_class
-from workers.manager.persistence import PersistenceManager
+from metahosting.common import config_manager
 from queue_managers import send_message
+from workers.manager.persistence import PersistenceManager
 
 
 def argument_parsing():
@@ -54,7 +53,7 @@ def run():
     worker_config = config_manager.get_configuration('worker')
     instance_env = config_manager.\
         get_instance_configuration('instance_environment')
-    worker_class = get_backend_class(worker_config)
+    worker_class = config_manager.get_backend_class(worker_config)
     worker = worker_class(worker_conf=worker_config,
                           instance_env=instance_env,
                           local_persistence=local_persistence,

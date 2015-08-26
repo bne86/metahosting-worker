@@ -1,8 +1,9 @@
-import config_manager
-import os
-import unittest
+from metahosting.common import config_manager
 from pymongo import MongoClient
 from stores.mongo_store import MongoStore
+
+import os
+import unittest
 
 
 class MongoStoreTest(unittest.TestCase):

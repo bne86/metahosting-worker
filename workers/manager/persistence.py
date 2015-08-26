@@ -1,7 +1,9 @@
 import logging
 import time
+
 from collections import namedtuple
-from config_manager import get_backend_class
+from metahosting.common.config_manager import get_backend_class
+
 States = namedtuple('States', ['STARTING', 'DELETED', 'RUNNING', 'STOPPED',
                                'FAILED'])
 INSTANCE_STATUS = States('starting', 'deleted', 'running', 'stopped', 'failed')

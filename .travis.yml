@@ -6,7 +6,9 @@ before_script:
 services:
   - rabbitmq
   - mongodb
-install: "pip install -r testing_requirements.txt && pip install -r requirements.txt"
+install:
+ - "pip install -r testing_requirements.txt && pip install -r requirements.txt"
+ - "pip install --upgrade git+https://github.com/BeneDicere/metahosting-common"
 script:
  - find . -name "*.py" -exec pep8 {} \;
  - nosetests --with-coverage --cover-package=config_manager,stores,workers,queue_managers,urlbuilders

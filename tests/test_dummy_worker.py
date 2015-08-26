@@ -8,7 +8,9 @@ class DummyWorkerTest(unittest.TestCase):
     def setUp(self):
         self.instance_manager = Mock()
         self.send_method = Mock()
-        config = {'name': 'dummyTest', 'description': 'foo bar bar'}
+        config = {'name': 'dummyTest',
+                  'description': 'foo bar bar',
+                  'uuid_source': 'empty'}
         self.worker = DummyWorker(worker_conf=config,
                                   instance_env=None,
                                   local_persistence=self.instance_manager,

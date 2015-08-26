@@ -1,12 +1,14 @@
 from abc import ABCMeta, abstractmethod
 import logging
+import os
 import random
 import string
-import uuid
 from time import sleep
 from queue_managers import get_message_subject, subscribe
 from urlbuilders import GenericUrlBuilder
 from workers.manager.port import PortManager
+from metahosting.common import get_uuid
+from metahosting.common.config_manager import get_configuration
 
 
 def get_random_key(length=16):
@@ -26,6 +28,17 @@ def callback(subject):
         return f
 
     return decorator
+
+
+def get_instance_configuration(section_name, config_file=None,
+                               variables_file=None):
+    properties = get_configuration(section_name=section_name,
+                                   config_file=config_file,
+                                   variables_file=variables_file)
+    for item in os.environ:
+        if 'INSTANCE_ENVIRONMENT' in item:
+            properties[item.split('__')[1]] = os.getenv(item)
+    return properties
 
 
 class Worker(object):
@@ -55,7 +68,7 @@ class Worker(object):
         self.local_persistence = local_persistence
         self.worker = dict()
         self.worker['name'] = worker_conf['name']
-        self.worker['uuid'] = _get_uuid(worker_conf)
+        self.worker['uuid'] = get_uuid(worker_conf['uuid_source'])
         self.worker['description'] = worker_conf['description']
         self.worker['environment'] = _load_instance_env(instance_env)
         self.port_manager = PortManager(worker_conf)
@@ -142,20 +155,6 @@ class Worker(object):
 
         logging.error('INSTANCE_ENV: %s', instance_env)
         return instance_env
-
-
-def _get_uuid(conf):
-    try:
-        filehandler = open(conf['uuid_file'], 'r')
-        content = (filehandler.read()).rstrip()
-        return str(uuid.UUID(content))
-    except IOError:
-        logging.error('Not able to read file: %s ', conf['uuid_file'])
-    except ValueError:
-        logging.error('Not able to validate uuid: %s ', content)
-    except KeyError:
-        logging.error('No path for uuid file in conf' )
-    return str(uuid.uuid4())
 
 
 def _load_instance_env(instance_env=None):

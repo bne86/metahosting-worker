@@ -1,8 +1,10 @@
-from queue_managers.rabbit import BlockingPikaManager
-from queue_managers import send_message, subscribe, get_message_subject
-import config_manager
 import unittest
 import os
+
+from metahosting.common import config_manager
+from queue_managers.rabbit import BlockingPikaManager
+from queue_managers import send_message, subscribe, get_message_subject
+
 
 
 def callback(msg):

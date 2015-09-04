@@ -191,19 +191,19 @@ class DockerWorker(Worker):
             self._get_container_networking(instance['container_id'])
         instance['urls'] = self.url_builder.build(instance['connection'])
 
+
 def _check_instance_env_port_injection(environment = [], ports = []):
     count = 0
     for index, item in enumerate(environment):
-        print index, item
         if 'INJECT_PORT' in item and len(ports) > 0:
             if count < len(ports):
-                print count, '<', len(ports)
                 port = ports[count]
             else:
                 port = ports[0]
-            environment[index ] = item.replace('INJECT_PORT', str(port))
+            environment[index] = item.replace('INJECT_PORT', str(port))
             count += 1
     return environment
+
 
 def _is_running(container):
     if 'State' not in container or 'Running' not in container['State']:

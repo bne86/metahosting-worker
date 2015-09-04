@@ -192,7 +192,7 @@ class DockerWorker(Worker):
         instance['urls'] = self.url_builder.build(instance['connection'])
 
 
-def _check_instance_env_port_injection(environment = [], ports = []):
+def _check_instance_env_port_injection(environment=[], ports=[]):
     count = 0
     for index, item in enumerate(environment):
         if 'INJECT_PORT' in item and len(ports) > 0:

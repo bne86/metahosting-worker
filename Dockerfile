@@ -1,9 +1,6 @@
-FROM debian:wheezy
+FROM centos:latest
 MAINTAINER BeneDicere
-RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
-    apt-get install python python-pip git -y && \
-    apt-get clean autoclean && apt-get autoremove && \
-    rm -rf /var/lib/{apt,dpkg,cache,log}
+RUN rpm -iUvh http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-5.noarch.rpm && yum -y update && yum install -y python python-pip git && yum clean all && rm -rf /var/lib/{yum,rpm}
 RUN mkdir /app
 ADD . /app/
 WORKDIR /app
